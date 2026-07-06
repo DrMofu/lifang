@@ -1,0 +1,56 @@
+{
+  "name": "触发",
+  "full": "Triggers",
+  "items": [
+    {
+      "id": "sexy",
+      "name": "Sexy Move",
+      "algo": "R U R' U'"
+    },
+    {
+      "id": "rev-sexy",
+      "name": "Reverse Sexy",
+      "algo": "U R U' R'"
+    },
+    {
+      "id": "sledge",
+      "name": "Sledgehammer",
+      "algo": "R' F R F'"
+    },
+    {
+      "id": "hedge",
+      "name": "Hedgeslammer",
+      "algo": "F R' F' R"
+    },
+    {
+      "id": "sune",
+      "name": "Sune",
+      "algo": "R U R' U R U2 R'"
+    },
+    {
+      "id": "antisune",
+      "name": "Anti-Sune",
+      "algo": "R U2 R' U' R U' R'"
+    },
+    {
+      "id": "niklas",
+      "name": "Niklas",
+      "algo": "R U' L' U R' U' L"
+    },
+    {
+      "id": "right-insert",
+      "name": "Right Insert",
+      "algo": "R U' R'"
+    },
+    {
+      "id": "left-insert",
+      "name": "Left Insert",
+      "algo": "L' U L"
+    },
+    {
+      "id": "u-sexy",
+      "name": "U Sexy",
+      "algo": "U R U R' U'"
+    }
+  ]
+}

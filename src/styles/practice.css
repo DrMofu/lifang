@@ -1,0 +1,1072 @@
+.lf-practice-app {
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 26% 8%, rgba(82, 143, 255, 0.14), transparent 34%),
+    radial-gradient(circle at 74% 18%, rgba(83, 198, 255, 0.1), transparent 30%),
+    linear-gradient(180deg, #f8fbff 0%, var(--tech-bg) 100%);
+  color: var(--tech-ink);
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+}
+.lf-practice-app::before {
+  background:
+    linear-gradient(to right, rgba(45, 111, 242, 0.035) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(45, 111, 242, 0.03) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.7), transparent 74%);
+}
+.practice-layout {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  flex: 1;
+  grid-template-columns: 320px minmax(520px, 1fr) 340px;
+  gap: 14px;
+  min-height: 0;
+  padding: 14px;
+}
+.practice-left,
+.practice-right,
+.practice-center {
+  min-width: 0;
+  min-height: 0;
+}
+.practice-left,
+.practice-right {
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior-x: none;
+}
+.practice-left {
+  gap: 8px;
+}
+.practice-right {
+  gap: 14px;
+}
+.practice-left > :not(.movelog) {
+  flex: 0 0 auto;
+}
+.practice-center {
+  display: flex;
+}
+.practice-card,
+.practice-stage,
+.lf-practice-app .movelog,
+.lf-practice-app .timer,
+.lf-practice-app .solve-metrics,
+.lf-practice-app .stats,
+.lf-practice-app .hist {
+  border: 1px solid rgba(222, 232, 248, 0.92);
+  border-radius: var(--tech-radius-lg);
+  background: var(--tech-panel);
+  box-shadow: var(--tech-shadow);
+  backdrop-filter: blur(18px);
+}
+.practice-card,
+.lf-practice-app .movelog,
+.lf-practice-app .solve-metrics,
+.lf-practice-app .stats,
+.lf-practice-app .hist {
+  padding: 18px;
+}
+.practice-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.practice-title-line {
+  display: flex;
+  min-width: 0;
+  align-items: baseline;
+  gap: 8px;
+}
+.practice-kicker {
+  color: var(--tech-muted);
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+}
+.practice-card-title {
+  color: var(--tech-ink);
+  font-size: 16px;
+  font-weight: 900;
+  line-height: 1.1;
+}
+.practice-btn {
+  display: inline-flex;
+  min-height: 42px;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(47, 111, 242, 0.34);
+  border-radius: 12px;
+  background: #ffffff;
+  color: var(--tech-blue);
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  font-size: 13px;
+  font-weight: 850;
+  letter-spacing: 0;
+  cursor: pointer;
+}
+.practice-btn-primary {
+  background: linear-gradient(145deg, #3d7cff, #2363e8);
+  box-shadow: 0 14px 24px rgba(47, 111, 242, 0.25);
+  color: #ffffff;
+}
+.practice-btn-ghost {
+  border-color: var(--tech-line);
+  background: rgba(255, 255, 255, 0.78);
+  color: var(--tech-ink-2);
+}
+.practice-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+.lf-practice-app .dt-date {
+  color: var(--tech-muted);
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  outline: none;
+}
+.lf-practice-app .dt-progress {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 7px;
+  margin-top: 12px;
+}
+.lf-practice-app .dt-step {
+  display: grid;
+  min-height: 42px;
+  place-items: center;
+  border: 1px solid var(--tech-line);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.68);
+  color: var(--tech-muted);
+  font-size: 11px;
+  font-weight: 800;
+}
+.lf-practice-app .dt-step.done {
+  border-color: rgba(47, 111, 242, 0.34);
+  background: var(--tech-blue-soft);
+  color: var(--tech-blue);
+}
+.lf-practice-app .dt-meta {
+  margin-top: 10px;
+  color: var(--tech-muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+.lf-practice-app .dt-actions {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+.lf-practice-app .dt-recent {
+  border: 1px solid var(--tech-line);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.58);
+  padding: 8px 10px;
+  color: var(--tech-muted);
+  font-size: 11px;
+}
+.practice-stage {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 42%, #ffffff 0%, #f7fbff 48%, #edf5ff 100%);
+}
+.lf-practice-app .practice-stage .cube-mount {
+  position: absolute;
+  z-index: 0;
+  inset: 18px 12px 18px;
+}
+.lf-practice-app .stage-tools {
+  position: absolute;
+  top: 20px;
+  right: auto;
+  left: 20px;
+  z-index: 8;
+  display: grid;
+  grid-template-columns: repeat(4, 112px);
+  align-items: center;
+  gap: 10px;
+  max-width: calc(100% - 40px);
+}
+.lf-practice-app .tag {
+  display: inline-flex;
+  width: 112px;
+  min-height: 38px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-sizing: border-box;
+  border: 1px solid var(--tech-line);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: 0 10px 26px rgba(50, 82, 130, 0.08);
+  padding: 0 13px;
+  color: var(--tech-ink-2);
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  font-size: 12px;
+  font-weight: 850;
+  letter-spacing: 0;
+}
+.lf-practice-app .tag-key {
+  display: inline-block;
+  flex: 0 0 auto;
+  color: currentColor;
+  font-size: inherit;
+  font-weight: 900;
+  line-height: 1;
+}
+.lf-practice-app .gyro-cost-notice {
+  position: absolute;
+  top: 72px;
+  left: 20px;
+  z-index: 16;
+  width: max-content;
+  max-width: calc(100% - 40px);
+  border: 1px solid rgba(214, 226, 244, 0.96);
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at 16% 0%, rgba(61, 124, 255, 0.12), transparent 48%),
+    rgba(255, 255, 255, 0.96);
+  box-shadow: 0 20px 48px rgba(35, 61, 105, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.86);
+  padding: 12px 14px;
+  color: var(--tech-ink);
+  font-size: 12px;
+  font-weight: 850;
+  line-height: 1.45;
+  opacity: 1;
+  text-align: center;
+  transition: opacity 2s ease;
+  backdrop-filter: blur(18px);
+}
+.lf-practice-app .gyro-cost-notice.fading {
+  opacity: 0;
+}
+.lf-practice-app .tag-btn:hover {
+  border-color: rgba(47, 111, 242, 0.28);
+  background: var(--tech-blue-soft);
+  color: var(--tech-blue);
+}
+.lf-practice-app .tag-btn.active,
+.lf-practice-app .tag-btn.active:hover {
+  border-color: rgba(47, 111, 242, 0.42);
+  background: var(--tech-blue);
+  color: #ffffff;
+}
+.lf-practice-app .tag.tag-btn.stage-reset-btn:disabled,
+.lf-practice-app .tag.tag-btn.stage-reset-btn:disabled:hover {
+  border-color: rgba(118, 129, 150, 0.24);
+  background: rgba(238, 241, 245, 0.82);
+  box-shadow: none;
+  color: #8f98a8;
+  cursor: not-allowed;
+  opacity: 1;
+}
+.stage-bottom-stack {
+  position: absolute;
+  right: 18px;
+  bottom: 18px;
+  left: 18px;
+  z-index: 8;
+  display: grid;
+  gap: 10px;
+}
+.lf-practice-app .stage-hint {
+  position: static;
+  width: auto;
+  border: 1px solid rgba(222, 232, 248, 0.96);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: var(--tech-shadow-soft);
+  color: var(--tech-ink);
+  backdrop-filter: blur(16px);
+}
+.lf-practice-app .stage-hint {
+  padding: 14px;
+}
+.lf-practice-app .sh-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.lf-practice-app .sh-kicker {
+  color: var(--tech-ink);
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0;
+}
+.lf-practice-app .sh-head-scramble {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+}
+.lf-practice-app .sh-head-scramble .sh-kicker {
+  grid-column: 1;
+}
+.lf-practice-app .sh-head-scramble .sh-actions {
+  grid-column: 3;
+  justify-self: end;
+}
+.lf-practice-app .sh-counter {
+  margin-left: auto;
+  color: var(--tech-muted);
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 800;
+}
+.lf-practice-app .sh-counter-num {
+  color: var(--tech-blue);
+}
+.lf-practice-app .sh-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+.lf-practice-app .sh-cancel {
+  min-height: 28px;
+  border: 1px solid var(--tech-line);
+  border-radius: 999px;
+  background: #ffffff;
+  padding: 0 10px;
+  color: var(--tech-muted);
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.lf-practice-app .sh-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+.lf-practice-app .sh-notice {
+  display: flex;
+  min-height: 18px;
+  align-items: center;
+  gap: 6px;
+  margin-top: 9px;
+  color: var(--tech-muted);
+  font-size: 12px;
+  line-height: 18px;
+}
+.lf-practice-app .sh-notice.error {
+  color: #c77814;
+}
+.lf-practice-app .sh-head-scramble .sh-notice.error {
+  color: #d92d20;
+  font-weight: 900;
+}
+.lf-practice-app .sh-notice-inline {
+  grid-column: 2;
+  justify-self: center;
+  min-width: 0;
+  margin-top: 0;
+}
+.lf-practice-app .sh-notice-label,
+.lf-practice-app .sh-undo-list {
+  flex: 0 0 auto;
+  line-height: inherit;
+}
+.lf-practice-app .sh-undo-list {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.lf-practice-app .sh-notice:not(.error) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.lf-practice-app .sh-undo-list .move-token {
+  width: 18px;
+  min-width: 18px;
+  height: 18px;
+}
+.lf-practice-app .sh-undo-list .move-token-face,
+.lf-practice-app .sh-undo-list .move-token-suffix {
+  font-weight: 900;
+}
+.lf-practice-app .free-state-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+.lf-practice-app .free-state-cell {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(47, 111, 242, 0.18);
+  border-radius: 12px;
+  background: rgba(248, 251, 255, 0.82);
+  padding: 10px 8px;
+  color: var(--tech-muted);
+  font-size: 12px;
+  font-weight: 800;
+  text-align: center;
+}
+.lf-practice-app .free-state-cell.active {
+  border-color: rgba(47, 111, 242, 0.44);
+  background: rgba(234, 242, 255, 0.82);
+  color: var(--tech-blue);
+}
+.lf-practice-app .free-state-cell.done {
+  border-color: rgba(47, 111, 242, 0.32);
+  background: var(--tech-blue-soft);
+  color: var(--tech-blue);
+}
+.lf-practice-app .free-state-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: rgba(47, 111, 242, 0.18);
+}
+.lf-practice-app .free-state-label {
+  position: relative;
+  z-index: 1;
+}
+.lf-practice-app .free-stage-hint {
+  border-color: rgba(47, 111, 242, 0.34);
+}
+.lf-practice-app .solve-stage-hint {
+  border-color: rgba(47, 111, 242, 0.34);
+}
+.lf-practice-app .tag-btn:disabled {
+  cursor: wait;
+  opacity: 0.62;
+}
+.lf-practice-app .movelog {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+  padding: 14px;
+}
+.lf-practice-app .ml-head {
+  flex: 0 0 auto;
+  align-items: center;
+  margin-bottom: 14px;
+}
+.lf-practice-app .ml-actions {
+  display: flex;
+  gap: 6px;
+}
+.lf-practice-app .ml-action {
+  min-height: 24px;
+  border: 1px solid var(--tech-line);
+  border-radius: 999px;
+  background: #ffffff;
+  padding: 0 10px;
+  color: var(--tech-muted);
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.lf-practice-app .ml-action:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+.lf-practice-app .ml-track {
+  --move-log-token-size: 30px;
+  --move-log-row-gap: 5px;
+  --move-log-rows: 1;
+  display: grid;
+  flex: 0 0 auto;
+  grid-template-columns: repeat(var(--move-log-columns, 8), var(--move-log-token-size));
+  grid-auto-rows: var(--move-log-token-size);
+  height: calc(
+    var(--move-log-token-size) * var(--move-log-rows) +
+    var(--move-log-row-gap) * (var(--move-log-rows) - 1)
+  );
+  min-height: calc(
+    var(--move-log-token-size) * var(--move-log-rows) +
+    var(--move-log-row-gap) * (var(--move-log-rows) - 1)
+  );
+  max-height: none;
+  align-content: flex-start;
+  align-items: flex-start;
+  justify-content: space-evenly;
+  column-gap: 0;
+  row-gap: var(--move-log-row-gap);
+  overflow-x: hidden;
+  overflow-y: hidden;
+}
+.lf-practice-app .ml-pill {
+  display: inline-grid;
+  width: var(--move-log-token-size);
+  height: var(--move-log-token-size);
+  place-items: center;
+  border: 1px solid var(--tech-line);
+  border-radius: 9px;
+  background: #f8fbff;
+  color: var(--tech-ink);
+  font-size: 12px;
+  font-weight: 900;
+}
+.lf-practice-app .practice-mode-switch {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
+  border: 1px solid var(--tech-line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow: var(--tech-shadow-soft);
+  padding: 4px;
+}
+.lf-practice-app .practice-mode-switch button {
+  min-height: 38px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--tech-muted);
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  font-size: 13px;
+  font-weight: 850;
+  cursor: pointer;
+}
+.lf-practice-app .practice-mode-switch button.active {
+  background: linear-gradient(145deg, #3d7cff, #2363e8);
+  box-shadow: 0 10px 18px rgba(47, 111, 242, 0.24);
+  color: #ffffff;
+}
+.lf-practice-app .timer {
+  padding: 20px 22px;
+}
+.lf-practice-app .timer::before {
+  top: 20px;
+  right: 22px;
+  width: 22px;
+  height: 22px;
+  border: 2px solid #8fb3ff;
+  border-radius: 50%;
+  background: transparent;
+  box-shadow: 0 0 0 5px rgba(47, 111, 242, 0.08);
+}
+.lf-practice-app .t-display {
+  color: var(--tech-ink);
+  font-family: var(--timer-number);
+  font-size: 48px;
+  font-weight: 850;
+}
+.lf-practice-app .t-unit {
+  border-right: 0;
+  color: var(--tech-ink);
+  font-size: 17px;
+}
+.lf-practice-app .t-phase {
+  margin-top: 10px;
+  color: var(--tech-muted);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+.lf-practice-app .timer-controls {
+  display: grid;
+  gap: 8px;
+}
+.lf-practice-app .solve-metrics,
+.lf-practice-app .stats,
+.lf-practice-app .hist {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.lf-practice-app .solve-metrics {
+  gap: 8px;
+  overflow: visible;
+}
+.lf-practice-app .stats {
+  position: relative;
+  overflow: visible;
+  padding: 14px;
+}
+.lf-practice-app .stats .practice-card-head {
+  margin-bottom: 10px;
+}
+.lf-practice-app .stats .st {
+  padding: 8px 9px;
+}
+
+.lf-practice-app .hist {
+  overflow-x: clip;
+}
+.lf-practice-app .practice-right .hist-right {
+  flex: 0 0 auto;
+}
+.lf-practice-app .hist-right {
+  margin-top: 0;
+  border-top: 0;
+  padding-top: 18px;
+}
+.lf-practice-app .hist-edit-btn {
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding: 0;
+  color: var(--tech-muted);
+  cursor: pointer;
+}
+.lf-practice-app .hist-edit-btn svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+}
+.lf-practice-app .hist-edit-btn:hover,
+.lf-practice-app .hist-edit-btn:focus-visible,
+.lf-practice-app .hist-edit-btn.active {
+  color: var(--tech-blue);
+  outline: none;
+}
+.lf-practice-app .solve-metric-main,
+.lf-practice-app .solve-phase-card,
+.lf-practice-app .st {
+  border: 1px solid var(--tech-line);
+  border-radius: 13px;
+  background: rgba(255, 255, 255, 0.62);
+  padding: 10px 11px;
+}
+.lf-practice-app .solve-metric-main {
+  display: grid;
+  grid-row: 1 / 3;
+  grid-template-rows: auto minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  min-height: 100%;
+  padding: 8px 10px 0;
+  text-align: center;
+}
+.lf-practice-app .solve-current-grid {
+  display: grid;
+  grid-template-columns: minmax(82px, 0.84fr) repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(2, minmax(54px, auto));
+  gap: 6px;
+}
+.lf-practice-app .solve-phase-grid,
+.lf-practice-app .stat-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+.lf-practice-app .solve-phase-grid {
+  grid-column: 2 / 4;
+  grid-row: 1 / 3;
+  grid-template-areas:
+    "cross f2l"
+    "oll pll";
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+.lf-practice-app .solve-phase-card {
+  position: relative;
+  min-width: 0;
+  padding: 8px 9px;
+}
+.lf-practice-app .solve-phase-card-cross {
+  grid-area: cross;
+}
+.lf-practice-app .solve-phase-card-f2l {
+  grid-area: f2l;
+  cursor: help;
+}
+.lf-practice-app .solve-phase-card-f2l:focus-visible {
+  outline: 2px solid rgba(47, 111, 242, 0.38);
+  outline-offset: 2px;
+}
+.lf-practice-app .solve-phase-card-oll {
+  grid-area: oll;
+}
+.lf-practice-app .solve-phase-card-pll {
+  grid-area: pll;
+}
+.lf-practice-app .solve-metrics span,
+.lf-practice-app .st-l {
+  display: block;
+  color: var(--tech-muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+.lf-practice-app .solve-metrics b,
+.lf-practice-app .st-v {
+  display: block;
+  margin-top: 5px;
+  color: var(--tech-ink);
+  font-size: 15px;
+  font-weight: 900;
+}
+.lf-practice-app .solve-phase-grid b {
+  margin-top: 3px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+.lf-practice-app .f2l-subphase-popover {
+  position: absolute;
+  z-index: 12;
+  right: 0;
+  top: calc(100% + 8px);
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 5px;
+  width: min(252px, calc(100vw - 32px));
+  border: 1px solid rgba(47, 111, 242, 0.18);
+  border-radius: 12px;
+  background:
+    radial-gradient(circle at 20% 0%, rgba(61, 124, 255, 0.11), transparent 46%),
+    rgba(255, 255, 255, 0.96);
+  box-shadow: 0 18px 42px rgba(35, 61, 105, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.82);
+  padding: 8px;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-4px) scale(0.98);
+  transition: opacity 0.14s ease, transform 0.14s ease;
+  backdrop-filter: blur(18px);
+}
+.lf-practice-app .f2l-subphase-popover::before {
+  position: absolute;
+  top: -6px;
+  right: 22px;
+  width: 10px;
+  height: 10px;
+  border: 1px solid rgba(47, 111, 242, 0.18);
+  border-right: 0;
+  border-bottom: 0;
+  background: rgba(255, 255, 255, 0.96);
+  content: "";
+  transform: rotate(45deg);
+}
+.lf-practice-app .solve-phase-card-f2l:hover .f2l-subphase-popover,
+.lf-practice-app .solve-phase-card-f2l:focus .f2l-subphase-popover,
+.lf-practice-app .solve-phase-card-f2l:focus-within .f2l-subphase-popover {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+.lf-practice-app .f2l-subphase-popover span {
+  min-width: 0;
+  border: 1px solid rgba(47, 111, 242, 0.12);
+  border-radius: 8px;
+  background: rgba(234, 242, 255, 0.5);
+  padding: 5px 4px;
+  color: var(--tech-muted);
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 850;
+  line-height: 1.25;
+  text-align: center;
+}
+.lf-practice-app .f2l-subphase-popover strong,
+.lf-practice-app .f2l-subphase-popover b,
+.lf-practice-app .f2l-subphase-popover em {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.lf-practice-app .f2l-subphase-popover strong {
+  color: var(--tech-ink);
+  font-weight: 900;
+}
+.lf-practice-app .f2l-subphase-popover b,
+.lf-practice-app .f2l-subphase-popover em {
+  color: var(--tech-ink-2);
+  font-size: 9px;
+  font-style: normal;
+  font-weight: 850;
+}
+.lf-practice-app .f2l-subphase-popover b {
+  color: var(--tech-muted);
+}
+.lf-practice-app .f2l-subphase-popover em {
+  color: var(--tech-ink-2);
+}
+.lf-practice-app .solve-metric-main b {
+  grid-row: 5;
+  margin-top: 0;
+  margin-bottom: 0;
+  color: var(--tech-blue);
+  font-size: 18px;
+}
+.lf-practice-app .solve-metric-main em {
+  display: block;
+  grid-row: 3;
+  margin-top: 0;
+  color: var(--tech-blue);
+  font-size: 18px;
+  font-style: normal;
+  font-weight: 850;
+}
+.lf-practice-app .st-primary {
+  border-color: rgba(47, 111, 242, 0.28);
+  background: var(--tech-blue-soft);
+}
+.lf-practice-app .st-stable-score {
+  position: relative;
+  cursor: help;
+  outline: none;
+}
+.lf-practice-app .st-stable-score:hover,
+.lf-practice-app .st-stable-score:focus-visible {
+  z-index: 4;
+  box-shadow: 0 0 0 3px rgba(47, 111, 242, 0.12);
+}
+.lf-practice-app .stable-score-popover {
+  position: absolute;
+  z-index: 60;
+  top: calc(100% + 8px);
+  right: 0;
+  display: block;
+  width: min(280px, calc(100vw - 44px));
+  padding: 10px 11px;
+  border: 1px solid rgba(47, 111, 242, 0.16);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 18px 40px rgba(33, 45, 76, 0.16);
+  color: var(--tech-muted);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.55;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-4px);
+  transition:
+    opacity 0.14s ease,
+    transform 0.14s ease;
+  white-space: normal;
+}
+.lf-practice-app .st-stable-score:hover .stable-score-popover,
+.lf-practice-app .st-stable-score:focus-visible .stable-score-popover {
+  opacity: 1;
+  transform: translateY(0);
+}
+.lf-practice-app .hist-empty {
+  border-left: 3px solid var(--tech-line);
+  padding: 6px 0 6px 12px;
+  color: var(--tech-muted);
+  font-size: 13px;
+}
+.lf-practice-app .hist-list {
+  --history-row-size: 32px;
+  --history-row-gap: 7px;
+  --history-rows: 1;
+  display: grid;
+  gap: var(--history-row-gap);
+  height: calc(
+    var(--history-row-size) * var(--history-rows) +
+    var(--history-row-gap) * (var(--history-rows) - 1) +
+    1px
+  );
+  max-height: none;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior-x: none;
+  touch-action: pan-y;
+  border-top: 1px solid var(--tech-line-2);
+}
+.lf-practice-app .hist-row {
+  display: grid;
+  box-sizing: border-box;
+  grid-template-columns: 40px minmax(0, 1fr) 54px 40px;
+  align-items: center;
+  column-gap: 5px;
+  min-height: var(--history-row-size);
+  min-width: 0;
+  max-width: 100%;
+  border: 0;
+  border-bottom: 1px solid var(--tech-line-2);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.62);
+  padding: 6px 8px;
+  color: var(--tech-ink-2);
+}
+.lf-practice-app .hist-row.editing {
+  grid-template-columns: 40px minmax(0, 1fr) 54px 40px 22px;
+}
+.lf-practice-app .hist-row > * {
+  min-width: 0;
+}
+.lf-practice-app .hr-i,
+.lf-practice-app .hr-m {
+  color: var(--tech-muted);
+  font-family: var(--mono);
+  font-size: 10px;
+}
+.lf-practice-app .hr-m {
+  justify-self: end;
+  text-align: right;
+  overflow: visible;
+  white-space: nowrap;
+}
+.lf-practice-app .hr-track {
+  position: relative;
+  display: block;
+  height: 6px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #edf2f8;
+}
+.lf-practice-app .hr-bar {
+  position: absolute;
+  inset: 0 auto 0 0;
+  display: block;
+  min-width: 6px;
+  border-radius: 999px;
+  background: var(--tech-ink);
+}
+.lf-practice-app .hist-row.best .hr-bar {
+  background: var(--tech-green);
+}
+.lf-practice-app .hr-t {
+  justify-self: end;
+  color: var(--tech-ink);
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 900;
+  overflow: visible;
+  white-space: nowrap;
+}
+.lf-practice-app .hr-delete {
+  display: inline-grid;
+  place-items: center;
+  justify-self: end;
+  width: 18px;
+  height: 18px;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  color: var(--tech-muted);
+  font-size: 16px;
+  font-weight: 900;
+  line-height: 1;
+  cursor: pointer;
+}
+.lf-practice-app .hr-delete:hover,
+.lf-practice-app .hr-delete:focus-visible {
+  color: var(--accent);
+  outline: none;
+}
+.history-delete-popover {
+  position: fixed;
+  right: auto;
+}
+.history-delete-popover::before {
+  right: auto;
+  left: var(--history-delete-arrow-left);
+}
+@media (max-width: 1280px) {
+  .practice-layout {
+    grid-template-columns: 300px minmax(430px, 1fr) 320px;
+  }
+
+}
+@media (max-width: 980px) {
+  .lf-practice-app {
+    overflow: auto;
+  }
+
+  .practice-layout {
+    grid-template-columns: 1fr;
+    min-height: auto;
+  }
+
+  .practice-left,
+  .practice-right {
+    overflow: visible;
+  }
+
+  .lf-practice-app .movelog {
+    flex: 0 0 auto;
+  }
+
+  .practice-stage {
+    min-height: 620px;
+  }
+
+  .lf-practice-app .practice-stage .cube-mount {
+    inset: 14px;
+  }
+}
+@media (max-width: 560px) {
+  .practice-layout {
+    gap: 10px;
+    padding: 10px;
+  }
+
+  .practice-card,
+  .lf-practice-app .solve-metrics,
+  .lf-practice-app .stats,
+  .lf-practice-app .hist {
+    border-radius: 18px;
+    padding: 14px;
+  }
+
+  .lf-practice-app .legend-grid,
+  .lf-practice-app .stat-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .practice-stage {
+    min-height: 560px;
+    border-radius: 18px;
+  }
+
+  .lf-practice-app .practice-stage .cube-mount {
+    inset: 10px;
+  }
+
+  .lf-practice-app .stage-tools {
+    right: 12px;
+    left: 12px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .lf-practice-app .tag {
+    width: 100%;
+  }
+  .lf-practice-app .gyro-cost-notice {
+    top: 106px;
+    right: 12px;
+    left: 12px;
+    width: fit-content;
+    max-width: calc(100% - 24px);
+    margin: 0 auto;
+  }
+
+  .stage-bottom-stack {
+    right: 10px;
+    bottom: 10px;
+    left: 10px;
+  }
+
+  .lf-practice-app .free-state-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .lf-practice-app .solve-current-grid {
+    grid-template-columns: minmax(74px, 0.8fr) repeat(2, minmax(0, 1fr));
+  }
+
+  .lf-practice-app .f2l-subphase-popover {
+    right: -2px;
+    width: min(236px, calc(100vw - 28px));
+  }
+
+  .lf-practice-app .t-display {
+    font-size: 42px;
+  }
+}

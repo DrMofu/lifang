@@ -1,0 +1,666 @@
+{
+  "name": "F2L",
+  "full": "First Two Layers",
+  "items": [
+    {
+      "id": "f2l-01",
+      "name": "F2L 01",
+      "algos": [
+        {
+          "id": "f2l-01-01",
+          "name": "基础",
+          "algo": "U R U' R'"
+        },
+        {
+          "id": "f2l-01-02",
+          "name": "下压",
+          "algo": "R' F R F'"
+        }
+      ],
+      "facelets": "XXXXXFXXFRRXXRRXRRXXDFFXFFXDDXDDDDDDXXXLLLLLLXXXBBBBBB"
+    },
+    {
+      "id": "f2l-02",
+      "name": "F2L 02",
+      "algos": [
+        {
+          "id": "f2l-02-01",
+          "name": "基础",
+          "algo": "U' F' U F"
+        },
+        {
+          "id": "f2l-02-02",
+          "name": "下压",
+          "algo": "F R' F' R"
+        }
+      ],
+      "facelets": "XXXXXXXRRDXXXRRXRRXFFFFXFFXDDXDDDDDDXXXLLLLLLXXXBBBBBB"
+    },
+    {
+      "id": "f2l-03",
+      "name": "F2L 03",
+      "algos": [
+        {
+          "id": "f2l-03-01",
+          "name": "基础",
+          "algo": "F' U' F"
+        }
+      ],
+      "facelets": "XXXRXXXXFRXXXRRXRRXXDFFXFFXDDXDDDDDDXFXLLLLLLXXXBBBBBB"
+    },
+    {
+      "id": "f2l-04",
+      "name": "F2L 04",
+      "algos": [
+        {
+          "id": "f2l-04-01",
+          "name": "基础",
+          "algo": "R U R'"
+        }
+      ],
+      "facelets": "XFXXXXXXRDXXXRRXRRXXFFFXFFXDDXDDDDDDXXXLLLLLLXRXBBBBBB"
+    },
+    {
+      "id": "f2l-05",
+      "name": "F2L 05",
+      "algos": [
+        {
+          "id": "f2l-05-01",
+          "name": "基础",
+          "algo": "(U' R U R') (U2 R U' R')"
+        },
+        {
+          "id": "f2l-05-02",
+          "name": "下压",
+          "algo": "(U' R U R' U) (R' F R F')"
+        }
+      ],
+      "facelets": "XFXXXXXXFRXXXRRXRRXXDFFXFFXDDXDDDDDDXXXLLLLLLXRXBBBBBB"
+    },
+    {
+      "id": "f2l-06",
+      "name": "F2L 06",
+      "algos": [
+        {
+          "id": "f2l-06-01",
+          "name": "基础",
+          "algo": "(U F' U' F) (U2 F' U F)"
+        },
+        {
+          "id":"f2l-06-02",
+          "name": "下压",
+          "algo": "(U F' U' F U') (F R' F' R)"
+        }
+      ],
+      "facelets": "XXXRXXXXRDXXXRRXRRXXFFFXFFXDDXDDDDDDXFXLLLLLLXXXBBBBBB"
+    },
+    {
+      "id": "f2l-07",
+      "name": "F2L 07",
+      "algos": [
+        {
+          "id": "f2l-07-01",
+          "name": "基础",
+          "algo": "(U' R U2 R') (U2 R U' R')"
+        },
+        {
+          "id": "f2l-07-02",
+          "name": "下压",
+          "algo": "(U' R U2 R' U) (R' F R F')"
+        }
+      ],
+      "facelets": "XXXFXXXXFRXXXRRXRRXXDFFXFFXDDXDDDDDDXRXLLLLLLXXXBBBBBB"
+    },
+    {
+      "id": "f2l-08",
+      "name": "F2L 08",
+      "algos": [
+        {
+          "id": "f2l-08-01",
+          "name": "基础",
+          "algo": "(U F' U2 F) (U2 F' U F)"
+        },
+        {
+          "id": "f2l-08-02",
+          "name": "下压",
+          "algo": "U F' U2 F U' (F R' F' R)"
+        }
+      ],
+      "facelets": "XRXXXXXXRDXXXRRXRRXXFFFXFFXDDXDDDDDDXXXLLLLLLXFXBBBBBB"
+    },
+    {
+      "id": "f2l-09",
+      "name": "F2L 09",
+      "algos": [
+        {
+          "id": "f2l-09-01",
+          "name": "基础",
+          "algo": "(U' R U' R') (U F' U' F)"
+        },
+        {
+          "id": "f2l-09-02",
+          "name": "顺手",
+          "algo": "(U F' U' F) (U' F' U' F)"
+        }
+      ],
+      "facelets": "XRXXXXXXFRXXXRRXRRXXDFFXFFXDDXDDDDDDXXXLLLLLLXFXBBBBBB"
+    },
+    {
+      "id": "f2l-10",
+      "name": "F2L 10",
+      "algos": [
+        {
+          "id": "f2l-10-01",
+          "name": "基础",
+          "algo": "(U F' U F) (U' R U R')"
+        },
+        {
+          "id": "f2l-10-02",
+          "name": "顺手",
+          "algo": "(U' R U R') (U R U R')"
+        }
+      ],
+      "facelets": "XXXFXXXXRDXXXRRXRRXXFFFXFFXDDXDDDDDDXRXLLLLLLXXXBBBBBB"
+    },
+    {
+      "id": "f2l-11",
+      "name": "F2L 11",
+      "algos": [
+        {
+          "id": "f2l-11-01",
+          "name": "基础",
+          "algo": "(U' R U2 R') (U F' U' F)"
+        },
+        {
+          "id": "f2l-11-02",
+          "name": "顺手",
+          "algo": "(U' F' U F) (U F' U' F) (U F' U' F)"
+        }
+      ],
+      "facelets": "XXXXXRXXFRFXXRRXRRXXDFFXFFXDDXDDDDDDXXXLLLLLLXXXBBBBBB"
+    },
+    {
+      "id": "f2l-12",
+      "name": "F2L 12",
+      "algos": [
+        {
+          "id": "f2l-12-01",
+          "name": "基础",
+          "algo": "(U F' U2 F) (U' R U R')"
+        },
+        {
+          "id": "f2l-12-02",
+          "name": "顺手",
+          "algo": "(U R U' R') (U' R U R') (U' R U R')"
+        },
+        {
+          "id": "f2l-12-03",
+          "name": "其他解法",
+          "algo": "(R U' R' U) (R U' R' U2) (R U' R')"
+        }
+      ],
+      "facelets": "XXXXXXXFRDXXXRRXRRXRFFFXFFXDDXDDDDDDXXXLLLLLLXXXBBBBBB"
+    },
+    {
+      "id": "f2l-13",
+      "name": "F2L 13",
+      "algos": [
+        {
+          "id": "f2l-13-01",
+          "name": "基础",
+          "algo": "(U F' U F) (U' F' U' F)"
+        }
+      ],
+      "facelets": "XXXXXXXRFRXXXRRXRRXFDFFXFFXDDXDDDDDDXXXLLLLLLXXXBBBBBB"
+    },
+    {
+      "id": "f2l-14",
+      "name": "F2L 14",
+      "algos": [
+        {
+          "id": "f2l-14-01",
+          "name": "基础",
+          "algo": "(U' R U' R') (U R U R')"
+        }
+      ],
+      "facelets": "XXXXXFXXRDRXXRRXRRXXFFFXFFXDDXDDDDDDXXXLLLLLLXXXBBBBBB"
+    },
+    {
+      "id": "f2l-15",
+      "name": "F2L 15",
+      "algos": [
+        {
+          "id": "f2l-15-01",
+          "name": "基础",
+          "algo": "(F' U F U2) (R U R')"
+        },
+        {
+          "id": "f2l-15-02",
+          "name": "快速",
+          "algo": "(l U) (r U' r' U') l'"
+        }
+      ],
+      "facelets": "XXXXXXXFFRXXXRRXRRXRDFFXFFXDDXDDDDDDXXXLLLLLLXXXBBBBBB"
+    },
+    {
+      "id": "f2l-16",
+      "name": "F2L 16",
+      "algos": [
+        {
+          "id": "f2l-16-01",
+          "name": "基础",
+          "algo": "(R U' R' U2) (F' U' F)"
+        }
+      ],
+      "facelets": "XXXXXRXXRDFXXRRXRRXXFFFXFFXDDXDDDDDDXXXLLLLLLXXXBBBBBB"
+    },
+    {
+      "id": "f2l-17",
+      "name": "F2L 17",
+      "algos": [
+        {
+          "id": "f2l-17-01",
+          "name": "基础",
+          "algo": "(R U2 R' U') (R U R')"
+        }
+      ],
+      "facelets": "XXXXXFXXDFRXXRRXRRXXRFFXFFXDDXDDDDDDXXXLLLLLLXXXBBBBBB"
+    },
+    {
+      "id": "f2l-18",
+      "name": "F2L 18",
+      "algos": [
+        {
+          "id": "f2l-18-01",
+          "name": "基础",
+          "algo": "(F' U2 F U) (F' U' F)"
+        }
+      ],
+      "facelets": "XXXXXXXRDFXXXRRXRRXFRFFXFFXDDXDDDDDDXXXLLLLLLXXXBBBBBB"
+    },
+    {
+      "id": "f2l-19",
+      "name": "F2L 19",
+      "algos": [
+        {
+          "id": "f2l-19-01",
+          "name": "基础",
+          "algo": "U R U2 R' (U R U' R')"
+        },
+        {
+          "id": "f2l-19-02",
+          "name": "顺手",
+          "algo": "(R U' R' U) (R U' R' U) (R U R')"
+        }
+      ],
+      "facelets": "XFXXXXXXDFXXXRRXRRXXRFFXFFXDDXDDDDDDXXXLLLLLLXRXBBBBBB"
+    },
+    {
+      "id": "f2l-20",
+      "name": "F2L 20",
+      "algos": [
+        {
+          "id": "f2l-20-01",
+          "name": "基础",
+          "algo": "(U' F' U2 F) (U' F' U F)"
+        }
+      ],
+      "facelets": "XXXRXXXXDFXXXRRXRRXXRFFXFFXDDXDDDDDDXFXLLLLLLXXXBBBBBB"
+    },
+    {
+      "id": "f2l-21",
+      "name": "F2L 21",
+      "algos": [
+        {
+          "id": "f2l-21-01",
+          "name": "基础",
+          "algo": "(U2 R U R') (U R U' R')"
+        },
+        {
+          "id": "f2l-21-02",
+          "name": "备选",
+          "algo": "(R U' R' U2) (R U R')"
+        },
+        {
+          "id": "f2l-21-03",
+          "name": "极简",
+          "algo": "R B U2 B' R'"
+        }
+      ],
+      "facelets": "XXXFXXXXDFXXXRRXRRXXRFFXFFXDDXDDDDDDXRXLLLLLLXXXBBBBBB"
+    },
+    {
+      "id": "f2l-22",
+      "name": "F2L 22",
+      "algos": [
+        {
+          "id": "f2l-22-01",
+          "name": "基础",
+          "algo": "(U2 F' U' F) (U' F' U F)"
+        },
+        {
+          "id": "f2l-22-02",
+          "name": "备选",
+          "algo": "(F' U F U2) (F' U' F)"
+        },
+        {
+          "id": "f2l-22-03",
+          "name": "极简",
+          "algo": "F' L' U2 L F"
+        }
+      ],
+      "facelets": "XRXXXXXXDFXXXRRXRRXXRFFXFFXDDXDDDDDDXXXLLLLLLXFXBBBBBB"
+    },
+    {
+      "id": "f2l-23",
+      "name": "F2L 23",
+      "algos": [
+        {
+          "id": "f2l-23-01",
+          "name": "基础",
+          "algo": "(F' U2 F) (R U2 R') (U2 R U' R')"
+        },
+        {
+          "id": "f2l-23-02",
+          "name": "顺手",
+          "description": "变成F2L-27",
+          "algo": "(U R U' R') (U' R U' R') (U R U' R')"
+        }
+      ],
+      "facelets": "XXXXXXXFDFXXXRRXRRXRRFFXFFXDDXDDDDDDXXXLLLLLLXXXBBBBBB"
+    },
+    {
+      "id": "f2l-24",
+      "name": "F2L 24",
+      "algos": [
+        {
+          "id": "f2l-24-01",
+          "name": "基础",
+          "algo": "(R U2 R') (F' U2 F) (U2 F' U F)"
+        },
+        {
+          "id": "f2l-24-02",
+          "name": "顺手",
+          "description": "变成F2L-28",
+          "algo": "(U' F' U F) (U F' U F) (U' F' U F)"
+        },
+        {
+          "id": "f2l-24-03",
+          "name": "其他",
+          "algo": "(U' R U2 R') (F' U2 F U') (F' U F)"
+        }
+      ],
+      "facelets": "XXXXXRXXDFFXXRRXRRXXRFFXFFXDDXDDDDDDXXXLLLLLLXXXBBBBBB"
+    },
+    {
+      "id": "f2l-25",
+      "name": "F2L 25",
+      "algos": [
+        {
+          "id": "f2l-25-01",
+          "name": "基础",
+          "algo": "(U' F' U F) (U R U' R')"
+        },
+        {
+          "id": "f2l-25-02",
+          "name": "下压",
+          "algo": "(U' F' U F) (R' F R F')"
+        }
+      ],
+      "facelets": "XXXXXFXXXXRXXRRRRRXXXFFXFFFDDDDDDDDDXXXLLLLLLXXXBBBBBB"
+    },
+    {
+      "id": "f2l-26",
+      "name": "F2L 26",
+      "algos": [
+        {
+          "id": "f2l-26-01",
+          "name": "基础",
+          "algo": "(U R U' R') (U' F' U F)"
+        },
+        {
+          "id": "f2l-26-02",
+          "name": "下压",
+          "algo": "(U R U' R') (F R' F' R)"
+        }
+      ],
+      "facelets": "XXXXXXXRXXXXXRRRRRXFXFFXFFFDDDDDDDDDXXXLLLLLLXXXBBBBBB"
+    },
+    {
+      "id": "f2l-27",
+      "name": "F2L 27",
+      "algos": [
+        {
+          "id": "f2l-27-01",
+          "name": "基础",
+          "algo": "(R U' R' U) (R U' R')"
+        },
+        {
+          "id": "f2l-27-02",
+          "name": "其他",
+          "algo": "(F' U' F U2) (R U' R')"
+        }
+      ],
+      "facelets": "XXXXXFXXXXRXXRRFRRXXXFFXFFDDDRDDDDDDXXXLLLLLLXXXBBBBBB"
+    },
+    {
+      "id": "f2l-28",
+      "name": "F2L 28",
+      "algos": [
+        {
+          "id": "f2l-28-01",
+          "name": "基础",
+          "algo": "(F' U F U') (F' U F)"
+        },
+        {
+          "id": "f2l-28-02",
+          "name": "其他",
+          "algo": "(R U R' U2) (F' U F)"
+        }
+      ],
+      "facelets": "XXXXXXXRXXXXXRRDRRXFXFFXFFRDDFDDDDDDXXXLLLLLLXXXBBBBBB"
+    },
+    {
+      "id": "f2l-29",
+      "name": "F2L 29",
+      "algos": [
+        {
+          "id": "f2l-29-01",
+          "name": "基础",
+          "algo": "(F' U' F U) (F' U' F)"
+        }
+      ],
+      "facelets": "XXXXXXXRXXXXXRRFRRXFXFFXFFDDDRDDDDDDXXXLLLLLLXXXBBBBBB"
+    },
+    {
+      "id": "f2l-30",
+      "name": "F2L 30",
+      "algos": [
+        {
+          "id": "f2l-30-01",
+          "name": "基础",
+          "algo": "(R U R' U') (R U R')"
+        }
+      ],
+      "facelets": "XXXXXFXXXXRXXRRDRRXXXFFXFFRDDFDDDDDDXXXLLLLLLXXXBBBBBB"
+    },
+    {
+      "id": "f2l-31",
+      "name": "F2L 31",
+      "algos": [
+        {
+          "id": "f2l-31-01",
+          "name": "基础",
+          "algo": "(R U' R' U) (F' U F)"
+        },
+        {
+          "id": "f2l-31-02",
+          "name": "其他",
+          "algo": "F' U F R U2 R'"
+        }
+      ],
+      "facelets": "XXXXXXXXDFXXFRRXRRXXRFFRFFXDDXDDDDDDXXXLLLLLLXXXBBBBBB"
+    },
+    {
+      "id": "f2l-32",
+      "name": "F2L 32",
+      "algos": [
+        {
+          "id": "f2l-32-01",
+          "name": "基础1",
+          "algo": "(U R U' R') (U R U' R') (U R U' R')"
+        },
+        {
+          "id": "f2l-32-02",
+          "name": "基础2",
+          "algo": "(R U R' U') (R U R' U') (R U R')"
+        }
+      ],
+      "facelets": "XXXXXXXXDFXXRRRXRRXXRFFFFFXDDXDDDDDDXXXLLLLLLXXXBBBBBB"
+    },
+    {
+      "id": "f2l-33",
+      "name": "F2L 33",
+      "algos": [
+        {
+          "id": "f2l-33-01",
+          "name": "基础",
+          "algo": "(U' R U' R') (U2 R U' R')"
+        },
+        {
+          "id": "f2l-33-02",
+          "name": "其他",
+          "description": "变成F2L-27",
+          "algo": "(R U R' U') (R U' R' U) (R U' R')"
+        }
+      ],
+      "facelets": "XXXXXXXXFRXXRRRXRRXXDFFFFFXDDXDDDDDDXXXLLLLLLXXXBBBBBB"
+    },
+    {
+      "id": "f2l-34",
+      "name": "F2L 34",
+      "algos": [
+        {
+          "id": "f2l-34-01",
+          "name": "基础",
+          "algo": "(U F' U F) (U2 F' U F)"
+        },
+        {
+          "id": "f2l-34-02",
+          "name": "其他",
+          "algo": "(U' R U2 R') (U R U R')"
+        }
+      ],
+      "facelets": "XXXXXXXXRDXXRRRXRRXXFFFFFFXDDXDDDDDDXXXLLLLLLXXXBBBBBB"
+    },
+    {
+      "id": "f2l-35",
+      "name": "F2L 35",
+      "algos": [
+        {
+          "id": "f2l-35-01",
+          "name": "基础",
+          "algo": "(U'2 R U' R') (U' F' U' F)"
+        },
+        {
+          "id": "f2l-35-02",
+          "name": "顺手",
+          "algo": "(U' R U R') (U F' U' F)"
+        }
+      ],
+      "facelets": "XXXXXXXXFRXXFRRXRRXXDFFRFFXDDXDDDDDDXXXLLLLLLXXXBBBBBB"
+    },
+    {
+      "id": "f2l-36",
+      "name": "F2L 36",
+      "algos": [
+        {
+          "id": "f2l-36-01",
+          "name": "基础",
+          "algo": "(U2 F' U F) (U R U R')"
+        },
+        {
+          "id": "f2l-36-02",
+          "name": "顺手",
+          "algo": "(U F' U' F) (U' R U R')"
+        }
+      ],
+      "facelets": "XXXXXXXXRDXXFRRXRRXXFFFRFFXDDXDDDDDDXXXLLLLLLXXXBBBBBB"
+    },
+    {
+      "id": "f2l-37",
+      "name": "F2L 37",
+      "algos": [
+        {
+          "id": "f2l-37-01",
+          "name": "基础",
+          "algo": "(R U2 R' U) (R U2 R' U) (F' U' F)"
+        }
+      ],
+      "facelets": "XXXXXXXXXXXXFRRRRRXXXFFRFFFDDDDDDDDDXXXLLLLLLXXXBBBBBB"
+    },
+    {
+      "id": "f2l-38",
+      "name": "F2L 38",
+      "algos": [
+        {
+          "id": "f2l-38-01",
+          "name": "基础",
+          "algo": "(R U' R' U') (R U R' U2) (R U' R')"
+        }
+      ],
+      "facelets": "XXXXXXXXXXXXRRRFRRXXXFFFFFDDDRDDDDDDXXXLLLLLLXXXBBBBBB"
+    },
+    {
+      "id": "f2l-39",
+      "name": "F2L 39",
+      "algos": [
+        {
+          "id": "f2l-39-01",
+          "name": "基础",
+          "algo": "(F' U F U) (F' U' F U2) (F' U F)"
+        },
+        {
+          "id": "f2l-39-02",
+          "name": "右手",
+          "algo": "(R U' R' U) (R U2 R' U) (R U' R')"
+        }
+      ],
+      "facelets": "XXXXXXXXXXXXRRRDRRXXXFFFFFRDDFDDDDDDXXXLLLLLLXXXBBBBBB"
+    },
+    {
+      "id": "f2l-40",
+      "name": "F2L 40",
+      "algos": [
+        {
+          "id": "f2l-40-01",
+          "name": "基础",
+          "algo": "(R U' R' U') (R U' R' U) (F' U' F)"
+        },
+        {
+          "id": "f2l-40-02",
+          "name": "极简",
+          "algo": "F' L' U2 L F R U R'"
+        }
+      ],
+      "facelets": "XXXXXXXXXXXXFRRFRRXXXFFRFFDDDRDDDDDDXXXLLLLLLXXXBBBBBB"
+    },
+    {
+      "id": "f2l-41",
+      "name": "F2L 41",
+      "algos": [
+        {
+          "id": "f2l-41-01",
+          "name": "基础",
+          "algo": "(F' U F U) (F' U F U') (R U R')"
+        },
+        {
+          "id": "f2l-41-02",
+          "name": "极简",
+          "algo": "R U' R' F' L' U2 L F"
+        }
+      ],
+      "facelets": "XXXXXXXXXXXXFRRDRRXXXFFRFFRDDFDDDDDDXXXLLLLLLXXXBBBBBB"
+    }
+  ]
+}

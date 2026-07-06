@@ -1,0 +1,53 @@
+{
+  "name": "Cross",
+  "full": "Bottom Cross",
+  "items": [
+    {
+      "id": "cross-01",
+      "name": "连携一",
+      "algo": "U' R' F",
+      "facelets": "XXXXXXXFXXXXRRXXXXXDXXFDXXXXXXXDXXXXXXXXXXXXXXXXXXXXXX"
+    },
+    {
+      "id": "cross-02",
+      "name": "连携二",
+      "algo": "U F R'",
+      "facelets": "XXXXXRXXXXDXDRXXXXXXXXFFXXXXXXXDXXXXXXXXXXXXXXXXXXXXXX"
+    },
+    {
+      "id": "cross-03",
+      "name": "连携三",
+      "algos": [
+        {
+          "id": "cross-03-r",
+          "name": "右手",
+          "algo": "R' F R'"
+        },
+        {
+          "id": "cross-03-l",
+          "name": "左手",
+          "algo": "F R' F"
+        }
+      ],
+      "facelets": "XXXXXFXRXXDXXRXXXXXDXXFXXXXXXXXDXXXXXXXXXXXXXXXXXXXXXX"
+    },
+    {
+      "id": "cross-04",
+      "name": "连携四",
+      "algo": "R D' F D",
+      "facelets": "XXXXXXXXXXXXXRXXDXXXXXFXXFXXDXDDRXDXXXXXLXXLXXXXXBXXBX"
+    },
+    {
+      "id": "cross-05",
+      "name": "连携五",
+      "algo": "F' R' F'",
+      "facelets": "XXXXXXXDXXXXXRXXXXXFXXFXXDXXRXXXXXXXXXXXXXXXXXXXXXXXXX"
+    },
+    {
+      "id": "cross-06",
+      "name": "连携六",
+      "algo": "R F R",
+      "facelets": "XXXXXDXXXXRXXRXXDXXXXXFXXXXXXXXXFXXXXXXXXXXXXXXXXXXXXX"
+    }
+  ]
+}

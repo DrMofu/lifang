@@ -1,0 +1,90 @@
+@import "../styles/tokens.css";
+@import "../styles/base.css";
+@import "../styles/shell.css";
+@import "../styles/shared-ui.css";
+@import "../styles/home.css";
+@import "../styles/practice.css";
+@import "../styles/trainer.css";
+@import "../styles/formulas.css";
+@import "../styles/stats.css";
+@import "../styles/settings.css";
+
+:is(.lf-practice-app, .lf-tech-app) {
+  --panel-shadow-gutter: 14px;
+}
+
+@media (min-width: 981px) {
+  :is(.practice-left, .practice-right, .lf-tech-app .fm-side) {
+    margin: calc(var(--panel-shadow-gutter) * -1);
+    padding: var(--panel-shadow-gutter);
+  }
+
+  .lf-tech-app .fm-side {
+    height: calc(100% + var(--panel-shadow-gutter) * 2);
+    margin-right: 0;
+    padding-right: var(--panel-shadow-gutter);
+  }
+
+  .lf-tech-app .fm-grid {
+    margin: calc(var(--panel-shadow-gutter) * -1);
+    padding: calc(14px + var(--panel-shadow-gutter));
+    padding-right: var(--panel-shadow-gutter);
+  }
+}
+
+:is(.lf-practice-app .hist-right, .lf-tech-app .fm-side-bottom, .lf-tech-app .formula-stats-section, .lf-tech-app .fm-stats-dashboard) {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
+}
+
+:is(.lf-practice-app .hist-list, .lf-tech-app .fm-stats-recent) {
+  flex: 1 1 auto;
+  max-height: none;
+}
+
+.lf-practice-app .hist-list {
+  min-height: 0;
+}
+
+.lf-tech-app .fm-stats-recent {
+  min-height: 176px;
+}
+
+.lf-practice-app .stage-hint {
+  container-type: inline-size;
+}
+
+.lf-practice-app .sh-grid {
+  --scramble-token-size: 48px;
+  --scramble-token-gap: 8px;
+  display: grid;
+  grid-template-columns: repeat(20, var(--scramble-token-size));
+  gap: var(--scramble-token-gap);
+  justify-content: center;
+}
+
+@container (max-width: 1111px) {
+  .lf-practice-app .sh-grid {
+    grid-template-columns: repeat(10, var(--scramble-token-size));
+  }
+}
+
+@media (max-width: 560px) {
+  .lf-practice-app .sh-grid {
+    --scramble-token-size: 30px;
+    --scramble-token-gap: 4px;
+  }
+
+  .lf-practice-app .stage-hint .algo-tok {
+    width: var(--scramble-token-size);
+    height: 36px;
+    font-size: 12px;
+  }
+
+  .lf-practice-app .stage-hint .algo-tok-index {
+    font-size: 8px;
+  }
+}

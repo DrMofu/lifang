@@ -1,0 +1,586 @@
+{
+  "name": "PLL",
+  "full": "Permutation of Last Layer",
+  "items": [
+    {
+      "id": "pll-h",
+      "name": "H-Perm",
+      "algos": [
+        {
+          "id": "pll-h-mu",
+          "name": "MU版",
+          "algo": "(M2 U M2) U2 (M2 U M2)"
+        },
+        {
+          "id": "pll-h-ru",
+          "name": "RU版",
+          "algo": "R2 U2 R U2 R2 U2 R2 U2 R U2 R2"
+        }
+      ],
+      "facelets": "UUUUUUUUURLRRRRRRRFBFFFFFFFDDDDDDDDDLRLLLLLLLBFBBBBBBB",
+      "arrows": [
+        [
+          1,
+          7
+        ],
+        [
+          3,
+          5
+        ]
+      ]
+    },
+    {
+      "id": "pll-z",
+      "name": "Z-Perm",
+      "algos": [
+        {
+          "id": "pll-z-mu",
+          "name": "MU版",
+          "algo": "M' U (M2 U M2 U) M' U2 M2 U'"
+        },
+        {
+          "id": "pll-z-ru",
+          "name": "RU版",
+          "algo": "R' U' R2 U (R U R' U') R U R U' R U' R' U2"
+        }
+      ],
+      "facelets": "UUUUUUUUURBRRRRRRRFLFFFFFFFDDDDDDDDDLFLLLLLLLBRBBBBBBB",
+      "arrows": [
+        [
+          1,
+          5
+        ],
+        [
+          3,
+          7
+        ]
+      ]
+    },
+    {
+      "id": "pll-ua",
+      "name": "Ua-Perm",
+      "algos": [
+        {
+          "id": "pll-ua-mu",
+          "name": "MU版",
+          "algo": "(M'2 U M) U2 (M' U M'2)"
+        },
+        {
+          "id": "pll-ua-ru",
+          "name": "RU版",
+          "algo": "(R U' R) (U R U R) (U' R' U' R'2)"
+        }
+      ],
+      "facelets": "UUUUUUUUURLRRRRRRRFRFFFFFFFDDDDDDDDDLFLLLLLLLBBBBBBBBB",
+      "arrows": [
+        {
+          "from": 5,
+          "to": 3
+        },
+        {
+          "from": 3,
+          "to": 7
+        },
+        {
+          "from": 7,
+          "to": 5
+        }
+      ]
+    },
+    {
+      "id": "pll-ub",
+      "name": "Ub-Perm",
+      "algos": [
+        {
+          "id": "pll-ub-mu",
+          "name": "MU版",
+          "algo": "(M'2 U' M) U2 (M' U' M'2)"
+        },
+        {
+          "id": "pll-ub-ru",
+          "name": "RU版",
+          "algo": "(R2 U) (R U) (R' U' R' U') (R' U R')"
+        }
+      ],
+      "facelets": "UUUUUUUUURFRRRRRRRFLFFFFFFFDDDDDDDDDLRLLLLLLLBBBBBBBBB",
+      "arrows": [
+        {
+          "from": 3,
+          "to": 5
+        },
+        {
+          "from": 5,
+          "to": 7
+        },
+        {
+          "from": 7,
+          "to": 3
+        }
+      ]
+    },
+    {
+      "id": "pll-aa",
+      "name": "Aa-Perm",
+      "algos": [
+        {
+          "id": "pll-aa-1",
+          "name": "公式一",
+          "algo": "x' R2 D2 (R' U' R) D2 (R' U R') x"
+        },
+        {
+          "id": "pll-aa-2",
+          "name": "公式二",
+          "algo": "x z' R2 U2 (R' D' R) U2 (R' D R') z x'"
+        }
+      ],
+      "facelets": "UUUUUUUUUFRFRRRRRRBFLFFFFFFDDDDDDDDDLLRLLLLLLRBBBBBBBB",
+      "arrows": [
+        {
+          "from": 6,
+          "to": 2
+        },
+        {
+          "from": 2,
+          "to": 8
+        },
+        {
+          "from": 8,
+          "to": 6
+        }
+      ]
+    },
+    {
+      "id": "pll-ab",
+      "name": "Ab-Perm",
+      "algos": [
+        {
+          "id": "pll-ab-1",
+          "name": "公式一",
+          "algo": "x' (R U' R) D2 (R' U R) D2 R'2 x"
+        },
+        {
+          "id": "pll-ab-2",
+          "name": "公式二",
+          "algo": "x R2 D2 (R U R') D2 (R U' R) x'"
+        }
+      ],
+      "facelets": "UUUUUUUUUBRLRRRRRRRFRFFFFFFDDDDDDDDDLLFLLLLLLFBBBBBBBB",
+      "arrows": [
+        {
+          "from": 2,
+          "to": 6
+        },
+        {
+          "from": 6,
+          "to": 8
+        },
+        {
+          "from": 8,
+          "to": 2
+        }
+      ]
+    },
+    {
+      "id": "pll-e",
+      "name": "E-Perm",
+      "algos": [
+        {
+          "id": "pll-e-1",
+          "name": "公式一",
+          "algo": "x' (R U' R' D) (R U R' D') (R U R' D) (R U' R' D') x"
+        },
+        {
+          "id": "pll-e-2",
+          "name": "公式二",
+          "algo": "R2 U R' U' y (R U R' U') (R U R' U') (R U R') y' (R U' R2')"
+        }
+      ],
+      "facelets": "UUUUUUUUUBRFRRRRRRLFRFFFFFFDDDDDDDDDFLBLLLLLLRBLBBBBBB",
+      "arrows": [
+        [
+          0,
+          6
+        ],
+        [
+          2,
+          8
+        ]
+      ]
+    },
+    {
+      "id": "pll-t",
+      "name": "T-Perm",
+      "algos": [
+        {
+          "id": "pll-t-1",
+          "name": "公式一",
+          "algo": "(R U R' U') ( R' F ) ( R2 U' R' U' ) ( R U R' F' )"
+        }
+      ],
+      "facelets": "UUUUUUUUUBLFRRRRRRFFRFFFFFFDDDDDDDDDLRLLLLLLLRBBBBBBBB",
+      "arrows": [
+        [
+          3,
+          5
+        ],
+        [
+          2,
+          8
+        ]
+      ]
+    },
+    {
+      "id": "pll-y",
+      "name": "Y-Perm",
+      "algos": [
+        {
+          "id": "pll-y-1",
+          "name": "公式一",
+          "algo": "(F R U' R' U') (R U R' F') (R U R' U') (R' F R F')"
+        }
+      ],
+      "facelets": "UUUUUUUUULRRRRRRRRFFBFFFFFFDDDDDDDDDRBLLLLLLLBLFBBBBBB",
+      "arrows": [
+        [
+          0,
+          8
+        ],
+        [
+          3,
+          1
+        ]
+      ]
+    },
+    {
+      "id": "pll-f",
+      "name": "F-Perm",
+      "algos": [
+        {
+          "id": "pll-f-1",
+          "name": "公式一",
+          "algo": "(R' U' F') (R U R' U') (R' F) (R2 U' R' U') (R U R' U R)"
+        },
+        {
+          "id": "pll-f-2",
+          "name": "公式二",
+          "algo": "U' (R' U R U') R2 (F' U' F U) x (R U R' U') R2 x'"
+        }
+      ],
+      "facelets": "UUUUUUUUUBRFRRRRRRFBRFFFFFFDDDDDDDDDLLLLLLLLLRFBBBBBBB",
+      "arrows": [
+        [
+          1,
+          7
+        ],
+        [
+          2,
+          8
+        ]
+      ]
+    },
+    {
+      "id": "pll-v",
+      "name": "V-Perm",
+      "algos": [
+        {
+          "id": "pll-v-1",
+          "name": "公式一",
+          "algo": "R' U R U' R' f' (U' R U2 R') (U' R U' R') f R"
+        },
+        {
+          "id": "pll-v-2",
+          "name": "公式二",
+          "algo": "(R' U R' U') y (R' D R' D') R2 y' (R' B' R B R)"
+        }
+      ],
+      "facelets": "UUUUUUUUULBRRRRRRRFFBFFFFFFDDDDDDDDDRLLLLLLLLBRFBBBBBB",
+      "arrows": [
+        [
+          0,
+          8
+        ],
+        [
+          1,
+          5
+        ]
+      ]
+    },
+    {
+      "id": "pll-ja",
+      "name": "Ja-Perm",
+      "algos": [
+        {
+          "id": "pll-ja-1",
+          "name": "公式一",
+          "algo": "(L' U' L F) (L' U' L U) (L F') (L2 U L U)"
+        }
+      ],
+      "facelets": "UUUUUUUUURRRRRRRRRLLFFFFFFFDDDDDDDDDFFBLLLLLLBBLBBBBBB",
+      "arrows": [
+        [
+          0,
+          6
+        ],
+        [
+          3,
+          7
+        ]
+      ]
+    },
+    {
+      "id": "pll-jb",
+      "name": "Jb-Perm",
+      "algos": [
+        {
+          "id": "pll-jb-1",
+          "name": "公式一",
+          "algo": "(R U R' F') (R U R' U') (R' F) (R2 U' R' U')"
+        }
+      ],
+      "facelets": "UUUUUUUUUBFFRRRRRRFRRFFFFFFDDDDDDDDDLLLLLLLLLRBBBBBBBB",
+      "arrows": [
+        [
+          2,
+          8
+        ],
+        [
+          7,
+          5
+        ]
+      ]
+    },
+    {
+      "id": "pll-ra",
+      "name": "Ra-Perm",
+      "algos": [
+        {
+          "id": "pll-ra-1",
+          "name": "公式一",
+          "algo": "(L U2 L' U2) (L F') (L' U' L U) (L F L'2 U)"
+        }
+      ],
+      "facelets": "UUUUUUUUURRBRRRRRRFLFFFFFFFDDDDDDDDDBFLLLLLLLLBRBBBBBB",
+      "arrows": [
+        [
+          0,
+          2
+        ],
+        [
+          3,
+          7
+        ]
+      ]
+    },
+    {
+      "id": "pll-rb",
+      "name": "Rb-Perm",
+      "algos": [
+        {
+          "id": "pll-rb-1",
+          "name": "公式一",
+          "algo": "(R' U2 R U2) (R' F) (R U R' U') (R' F' R2 U')"
+        }
+      ],
+      "facelets": "UUUUUUUUURFBRRRRRRFRFFFFFFFDDDDDDDDDBLLLLLLLLLBRBBBBBB",
+      "arrows": [
+        [
+          0,
+          2
+        ],
+        [
+          7,
+          5
+        ]
+      ]
+    },
+    {
+      "id": "pll-na",
+      "name": "Na-Perm",
+      "algos": [
+        {
+          "id": "pll-na-1",
+          "name": "公式一",
+          "algo": "(R U R' U) (R U R' F') (R U R' U') (R' F) (R2 U' R' U') (U' R U' R')"
+        }
+      ],
+      "facelets": "UUUUUUUUURLLRRRRRRBFFFFFFFFDDDDDDDDDLRRLLLLLLFBBBBBBBB",
+      "arrows": [
+        [
+          3,
+          5
+        ],
+        [
+          6,
+          2
+        ]
+      ]
+    },
+    {
+      "id": "pll-nb",
+      "name": "Nb-Perm",
+      "algos": [
+        {
+          "id": "pll-nb-1",
+          "name": "公式一",
+          "algo": "(L' U' L U') (L' U' L F) (L' U' L U) (L F') (L2 U L U) (U L' U L)"
+        },
+        {
+          "id": "pll-nb-2",
+          "name": "公式二",
+          "algo": "(R' U R U') R' (F' U' F) (R U R' F) R' F' (R U' R)"
+        }
+      ],
+      "facelets": "UUUUUUUUULLRRRRRRRFFBFFFFFFDDDDDDDDDRRLLLLLLLBBFBBBBBB",
+      "arrows": [
+        [
+          3,
+          5
+        ],
+        [
+          0,
+          8
+        ]
+      ]
+    },
+    {
+      "id": "pll-ga",
+      "name": "Ga-Perm",
+      "algos": [
+        {
+          "id": "pll-ga-1",
+          "name": "公式一",
+          "algo": "R2 (U R' U R') (U' R U') R2 D (U' R' U R) D'"
+        },
+        {
+          "id": "pll-ga-2",
+          "name": "公式二",
+          "algo": "R2 U R' U R' U' R U' R2 (U' D) R' U R (D' U)"
+        }
+      ],
+      "facelets": "UUUUUUUUUBLFRRRRRRFRRFFFFFFDDDDDDDDDLBLLLLLLLRFBBBBBBB",
+      "arrows": [
+        {
+          "from": 6,
+          "to": 0
+        },
+        {
+          "from": 7,
+          "to": 1
+        },
+        {
+          "from": 8,
+          "to": 6
+        },
+        {
+          "from": 0,
+          "to": 8
+        }
+      ]
+    },
+    {
+      "id": "pll-gb",
+      "name": "Gb-Perm",
+      "algos": [
+        {
+          "id": "pll-gb-1",
+          "name": "公式一",
+          "algo": "(R' U' R U) D' R2 (U R' U) (R U' R U') R2 D"
+        },
+        {
+          "id": "pll-gb-2",
+          "name": "公式二",
+          "algo": "(R' d' F) (R2 u) (R' U) (R U' R u' R'2)"
+        }
+      ],
+      "facelets": "UUUUUUUUUBFFRRRRRRFBRFFFFFFDDDDDDDDDLRLLLLLLLRLBBBBBBB",
+      "arrows": [
+        {
+          "from": 0,
+          "to": 6
+        },
+        {
+          "from": 1,
+          "to": 7
+        },
+        {
+          "from": 6,
+          "to": 8
+        },
+        {
+          "from": 0,
+          "to": 8
+        }
+      ]
+    },
+    {
+      "id": "pll-gc",
+      "name": "Gc-Perm",
+      "algos": [
+        {
+          "id": "pll-gc-1",
+          "name": "公式一",
+          "algo": "R2 (U' R U' R) (U R' U) R2 D' (U R U' R') D"
+        },
+        {
+          "id": "pll-gc-2",
+          "name": "公式二",
+          "algo": "(R'2 u' R U' R) (U R' u) (R2 f R' f')"
+        }
+      ],
+      "facelets": "UUUUUUUUUBLFRRRRRRFBRFFFFFFDDDDDDDDDLFLLLLLLLRRBBBBBBB",
+      "arrows": [
+        {
+          "from": 8,
+          "to": 2
+        },
+        {
+          "from": 7,
+          "to": 1
+        },
+        {
+          "from": 6,
+          "to": 8
+        },
+        {
+          "from": 6,
+          "to": 2
+        }
+      ]
+    },
+    {
+      "id": "pll-gd",
+      "name": "Gd-Perm",
+      "algos": [
+        {
+          "id": "pll-gd-1",
+          "name": "公式一",
+          "algo": "(R U R' U') D R2 (U' R U') (R' U R' U) R2 D'"
+        },
+        {
+          "id": "pll-gd-2",
+          "name": "公式二",
+          "algo": "(R U R') y' (R2 u' R U') (R' U R' u R2)"
+        }
+      ],
+      "facelets": "UUUUUUUUUBBFRRRRRRFLRFFFFFFDDDDDDDDDLRLLLLLLLRFBBBBBBB",
+      "arrows": [
+        {
+          "from": 2,
+          "to": 8
+        },
+        {
+          "from": 1,
+          "to": 7
+        },
+        {
+          "from": 8,
+          "to": 6
+        },
+        {
+          "from": 6,
+          "to": 2
+        }
+      ]
+    }
+  ]
+}
