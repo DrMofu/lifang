@@ -343,15 +343,16 @@ export function SettingsApp() {
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback?next=/settings`,
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
           shouldCreateUser: true,
         },
       });
       if (error) throw error;
       setAuthCodeSent(true);
       flashStatus("success", "验证码已发送，请查看邮箱。");
-    } catch {
-      flashStatus("error", "发送验证码失败，请稍后重试。");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "请稍后重试。";
+      flashStatus("error", `发送验证码失败：${message}`);
     } finally {
       setAuthActionPending(false);
     }
