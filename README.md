@@ -2,7 +2,7 @@
 
 魔方在线练习网站
 
-地址：[cube.mwhitelab.com](cube.mwhitelab.com)
+地址：[cube.mwhitelab.com](https://cube.mwhitelab.com)
 
 注意：目前本项目只支持GAN魔方
 

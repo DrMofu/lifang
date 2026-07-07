@@ -30,6 +30,7 @@ type F2lSubphaseKey = "one" | "two" | "three" | "four";
 type CfopAverageSize = 5 | 20 | 100;
 type TrendMetric = "time" | "moves";
 type TrendPhaseFilter = "all" | CfopPhaseKey;
+type TrendRangeFilter = "all" | "100" | "500" | "1000";
 
 const CFOP_AVERAGE_SIZES: CfopAverageSize[] = [5, 20, 100];
 const CFOP_PHASES: Array<{ key: CfopPhaseKey; name: string }> = [
@@ -57,6 +58,11 @@ const TREND_METRIC_FILTERS: Array<{ key: TrendMetric; label: string }> = [
   { key: "time", label: "用时" },
   { key: "moves", label: "步数" },
 ];
+const TREND_RANGE_LIMITS: Array<{ key: Exclude<TrendRangeFilter, "all">; label: string; count: number }> = [
+  { key: "100", label: "最近100次", count: 100 },
+  { key: "500", label: "最近500次", count: 500 },
+  { key: "1000", label: "最近1000次", count: 1000 },
+];
 
 const TREND_PHASE_FILTER_NAMES: Record<TrendPhaseFilter, string> = {
   all: "全部",
@@ -67,7 +73,7 @@ const TREND_PHASE_FILTER_NAMES: Record<TrendPhaseFilter, string> = {
 };
 
 const TREND_PHASE_DROPDOWN_LABELS: Record<TrendPhaseFilter, string> = {
-  all: "全部",
+  all: "全阶段",
   cross: "Cross",
   f2l: "F2L",
   oll: "OLL",
@@ -446,10 +452,11 @@ export function StatsApp() {
   const [cfopAverageSize, setCfopAverageSize] = useState<CfopAverageSize>(5);
   const [trendMetric, setTrendMetric] = useState<TrendMetric>("time");
   const [trendPhaseFilter, setTrendPhaseFilter] = useState<TrendPhaseFilter>("all");
+  const [trendRange, setTrendRange] = useState<TrendRangeFilter>("all");
   const [averageSettings, setAverageSettings] = useState<AverageTimeSettings>(loadAverageTimeSettings);
   const [trendCfopTip, setTrendCfopTip] = useState<TrendCfopTip | null>(null);
   const [trendGuideIndex, setTrendGuideIndex] = useState<number | null>(null);
-  const [openTrendDropdown, setOpenTrendDropdown] = useState<"metric" | "phase" | null>(null);
+  const [openTrendDropdown, setOpenTrendDropdown] = useState<"metric" | "phase" | "range" | null>(null);
   const [heatmapTip, setHeatmapTip] = useState<HeatmapTip | null>(null);
   const [dailyLevelTip, setDailyLevelTip] = useState<DailyLevelTip | null>(null);
   const [portalReady, setPortalReady] = useState(false);
@@ -512,9 +519,28 @@ export function StatsApp() {
     };
   }, [averageSettings, history]);
   const stableScoreMeta = useMemo(() => formatStableScoreMeta(averageSettings), [averageSettings]);
+  const trendRangeOptions = useMemo(
+    () => [
+      { key: "all" as const, label: "显示全部" },
+      ...TREND_RANGE_LIMITS.filter((range) => history.length >= range.count).map((range) => ({
+        key: range.key,
+        label: range.label,
+      })),
+    ],
+    [history.length],
+  );
+
+  useEffect(() => {
+    if (!trendRangeOptions.some((option) => option.key === trendRange)) {
+      setTrendRange("all");
+      clearTrendHover();
+    }
+  }, [trendRange, trendRangeOptions]);
 
   const trend = useMemo(() => {
-    const entries = [...history].reverse();
+    const rangeLimit = trendRange === "all" ? null : Number(trendRange);
+    const rangeHistory = rangeLimit == null ? history : history.slice(0, rangeLimit);
+    const entries = [...rangeHistory].reverse();
     const points = entries.map((entry) => trendPointValue(entry, trendMetric, trendPhaseFilter));
     const domainPoints = points.filter((point): point is number => typeof point === "number");
     if (domainPoints.length === 0) return { entries, points, min: 0, max: 0, stableScore: [] as Array<number | null>, best: null as number | null };
@@ -529,7 +555,7 @@ export function StatsApp() {
     const best = Math.min(...domainPoints);
     const { min, max } = trendDomain(domainPoints, trendMetric);
     return { entries, points, min, max, stableScore, best };
-  }, [averageSettings, history, trendMetric, trendPhaseFilter]);
+  }, [averageSettings, history, trendMetric, trendPhaseFilter, trendRange]);
   const showTrendPb = trendPhaseFilter === "all";
 
   useEffect(() => {
@@ -1210,7 +1236,7 @@ export function StatsApp() {
     options,
     onSelect,
   }: {
-    id: "metric" | "phase";
+    id: "metric" | "phase" | "range";
     label: string;
     value: T;
     options: Array<{ key: T; label: string }>;
@@ -1483,6 +1509,13 @@ export function StatsApp() {
                 <span><span className="lg-dot" style={{ background: "#0E0E0C" }}></span>单次</span>
                 <span><span className="lg-dot" style={{ background: "#1F4FB6" }}></span>成绩走势</span>
                 {showTrendPb && <span><span className="lg-dot" style={{ background: "#C9352A" }}></span>PB</span>}
+                <TrendDropdown
+                  id="range"
+                  label="成绩趋势显示范围"
+                  value={trendRange}
+                  options={trendRangeOptions}
+                  onSelect={setTrendRange}
+                />
                 <TrendDropdown
                   id="metric"
                   label="成绩趋势数据类型"
