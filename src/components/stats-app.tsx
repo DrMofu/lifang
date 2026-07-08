@@ -4,8 +4,6 @@ import { Fragment, useEffect, useMemo, useRef, useState, type CSSProperties, typ
 import { createPortal } from "react-dom";
 import { AppFooter, AppTopbar } from "@/components/app-shell";
 import {
-  DEFAULT_AVERAGE_TIME_SETTINGS,
-  calculateAverageTime,
   loadAverageTimeSettings,
   type AverageTimeSettings,
 } from "@/lib/average-time";
@@ -114,6 +112,19 @@ type DailyLevelTip = {
   top: number;
   arrowLeft: number;
   placement: "above" | "below";
+};
+
+type DailyLevelSummary = {
+  rows: DailyLevelEntry[];
+  today: DailyLevelEntry | null;
+  slowest: number;
+  bestEntry: DailyLevelEntry | null;
+  trend: {
+    entries: DailyLevelEntry[];
+    points: number[];
+    min: number;
+    max: number;
+  };
 };
 
 const TREND_TIP_WIDTH = 286;
@@ -445,6 +456,113 @@ function trendPointValue(entry: SolveHistoryEntry, metric: TrendMetric, phaseFil
   return entry.ms;
 }
 
+function clampStatsInteger(value: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, Math.trunc(value)));
+}
+
+function normalizedAverageSampleSize(settings: AverageTimeSettings) {
+  return clampStatsInteger(settings.sampleSize, 1, 100);
+}
+
+function normalizedTrimCount(value: number) {
+  return clampStatsInteger(value, 0, 20);
+}
+
+function averageValueForWindow(sample: number[], settings: AverageTimeSettings) {
+  if (sample.length === 0) return null;
+  const window = sample.length > normalizedAverageSampleSize(settings)
+    ? sample.slice(-normalizedAverageSampleSize(settings))
+    : sample;
+
+  if (settings.method === "median") {
+    const sorted = [...window].sort((a, b) => a - b);
+    const middle = Math.floor(sorted.length / 2);
+    return sorted.length % 2 === 0 ? (sorted[middle - 1] + sorted[middle]) / 2 : sorted[middle];
+  }
+
+  if (settings.method === "trimmed") {
+    const trimBest = normalizedTrimCount(settings.trimBest);
+    const trimWorst = normalizedTrimCount(settings.trimWorst);
+    if (window.length <= trimBest + trimWorst) return null;
+    const sorted = [...window].sort((a, b) => a - b);
+    const trimmed = sorted.slice(trimBest, sorted.length - trimWorst);
+    if (trimmed.length === 0) return null;
+    return trimmed.reduce((sum, value) => sum + value, 0) / trimmed.length;
+  }
+
+  return window.reduce((sum, value) => sum + value, 0) / window.length;
+}
+
+function rollingAverageValues(points: Array<number | null>, settings: AverageTimeSettings) {
+  const sampleSize = normalizedAverageSampleSize(settings);
+  const sample: number[] = [];
+  return points.map((value) => {
+    if (typeof value !== "number" || !Number.isFinite(value) || value <= 0) return null;
+    sample.push(value);
+    if (sample.length > sampleSize) sample.shift();
+    return averageValueForWindow(sample, settings);
+  });
+}
+
+function summarizeSolveRecords(history: SolveHistoryEntry[], settings: AverageTimeSettings) {
+  if (history.length === 0) return { pb: null, ao5: null, stableScore: null, ao100: null, count: 0 };
+
+  const latest5: number[] = [];
+  const latest100: number[] = [];
+  const stableSample: number[] = [];
+  const sampleSize = normalizedAverageSampleSize(settings);
+  let pb: number | null = null;
+
+  for (let index = 0; index < history.length; index++) {
+    const ms = history[index].ms;
+    if (!Number.isFinite(ms) || ms <= 0) continue;
+    pb = pb == null ? ms : Math.min(pb, ms);
+    if (index < 5) latest5.push(ms);
+    if (index < 100) latest100.push(ms);
+    if (stableSample.length < sampleSize) stableSample.push(ms);
+  }
+
+  return {
+    pb,
+    ao5: history.length >= 5 ? avgTrim(latest5) : null,
+    stableScore: history.length >= sampleSize ? averageValueForWindow(stableSample, settings) : null,
+    ao100: history.length >= 100 ? avgTrimByCount(latest100, 5, 5) : null,
+    count: history.length,
+  };
+}
+
+function summarizeDailyLevels(dailyLevels: DailyLevelEntry[], todayLocalDate: string): DailyLevelSummary {
+  const entries = [...dailyLevels].sort((a, b) => a.completedAt - b.completedAt);
+  const points: number[] = [];
+  let min = 0;
+  let max = 0;
+  let slowest = 0;
+  let today: DailyLevelEntry | null = null;
+  let bestEntry: DailyLevelEntry | null = null;
+
+  entries.forEach((entry, index) => {
+    points.push(entry.averageMs);
+    if (index === 0) {
+      min = entry.averageMs;
+      max = entry.averageMs;
+    } else {
+      min = Math.min(min, entry.averageMs);
+      max = Math.max(max, entry.averageMs);
+    }
+    slowest = Math.max(slowest, entry.averageMs);
+    if (entry.localDate === todayLocalDate) today = entry;
+    if (!bestEntry || entry.averageMs < bestEntry.averageMs) bestEntry = entry;
+  });
+
+  return {
+    rows: entries.toReversed(),
+    today,
+    slowest,
+    bestEntry,
+    trend: { entries, points, min, max },
+  };
+}
+
 export function StatsApp() {
   const [history, setHistory] = useState<SolveHistoryEntry[]>(loadSolveHistory);
   const [dailyLevels, setDailyLevels] = useState<DailyLevelEntry[]>(loadDailyLevels);
@@ -503,21 +621,7 @@ export function StatsApp() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [openTrendDropdown]);
 
-  const records = useMemo(() => {
-    if (history.length === 0) return { pb: null, ao5: null, stableScore: null, ao100: null, count: 0 };
-    const ms = history.map((entry) => entry.ms);
-    const chronologicalMs = history.toReversed().map((entry) => entry.ms);
-    const stableScore = history.length >= averageSettings.sampleSize
-      ? calculateAverageTime(chronologicalMs, averageSettings)?.valueMs ?? null
-      : null;
-    return {
-      pb: Math.min(...ms),
-      ao5: history.length >= 5 ? avgTrim(ms.slice(0, 5)) : null,
-      stableScore,
-      ao100: history.length >= 100 ? avgTrimByCount(ms.slice(0, 100), 5, 5) : null,
-      count: history.length,
-    };
-  }, [averageSettings, history]);
+  const records = useMemo(() => summarizeSolveRecords(history, averageSettings), [averageSettings, history]);
   const stableScoreMeta = useMemo(() => formatStableScoreMeta(averageSettings), [averageSettings]);
   const trendRangeOptions = useMemo(
     () => [
@@ -544,15 +648,8 @@ export function StatsApp() {
     const points = entries.map((entry) => trendPointValue(entry, trendMetric, trendPhaseFilter));
     const domainPoints = points.filter((point): point is number => typeof point === "number");
     if (domainPoints.length === 0) return { entries, points, min: 0, max: 0, stableScore: [] as Array<number | null>, best: null as number | null };
-    const stableScore = points.map((value, index) => (
-      value == null
-        ? null
-        : calculateAverageTime(
-          points.slice(0, index + 1).filter((point): point is number => typeof point === "number"),
-          averageSettings,
-        )?.valueMs ?? null
-    ));
-    const best = Math.min(...domainPoints);
+    const stableScore = rollingAverageValues(points, averageSettings);
+    const best = domainPoints.reduce((currentBest, value) => Math.min(currentBest, value), domainPoints[0]);
     const { min, max } = trendDomain(domainPoints, trendMetric);
     return { entries, points, min, max, stableScore, best };
   }, [averageSettings, history, trendMetric, trendPhaseFilter, trendRange]);
@@ -736,38 +833,16 @@ export function StatsApp() {
   }, [cfopBreakdown, trendCfopTip]);
 
   const todayLocalDate = getDailyTestDateKey();
-  const sortedDailyLevels = useMemo(
-    () => [...dailyLevels].sort((a, b) => b.completedAt - a.completedAt),
-    [dailyLevels],
+  const dailyLevelSummary = useMemo(
+    () => summarizeDailyLevels(dailyLevels, todayLocalDate),
+    [dailyLevels, todayLocalDate],
   );
-  const todayDailyLevel = useMemo(
-    () => sortedDailyLevels.find((entry) => entry.localDate === todayLocalDate) ?? null,
-    [sortedDailyLevels, todayLocalDate],
-  );
-  const dailyLevelRows = sortedDailyLevels;
-  const slowestDailyLevel = useMemo(
-    () => (sortedDailyLevels.length === 0 ? 0 : Math.max(...sortedDailyLevels.map((entry) => entry.averageMs))),
-    [sortedDailyLevels],
-  );
-  const bestDailyLevelEntry = useMemo(
-    () => dailyLevels.reduce<DailyLevelEntry | null>(
-      (best, entry) => (!best || entry.averageMs < best.averageMs ? entry : best),
-      null,
-    ),
-    [dailyLevels],
-  );
+  const todayDailyLevel = dailyLevelSummary.today;
+  const dailyLevelRows = dailyLevelSummary.rows;
+  const slowestDailyLevel = dailyLevelSummary.slowest;
+  const bestDailyLevelEntry = dailyLevelSummary.bestEntry;
   const bestDailyLevel = bestDailyLevelEntry?.averageMs ?? null;
-  const dailyLevelTrend = useMemo(() => {
-    const entries = [...dailyLevels].sort((a, b) => a.completedAt - b.completedAt);
-    const points = entries.map((entry) => entry.averageMs);
-    if (points.length === 0) return { entries, points, min: 0, max: 0 };
-    return {
-      entries,
-      points,
-      min: Math.min(...points),
-      max: Math.max(...points),
-    };
-  }, [dailyLevels]);
+  const dailyLevelTrend = dailyLevelSummary.trend;
 
   useEffect(() => {
     if (!dailyLevelTip) return;

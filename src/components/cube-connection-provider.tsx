@@ -155,6 +155,7 @@ const GYRO_TELEMETRY_MIN_INTERVAL_MS = 250;
 const PRACTICE_IDLE_STOP_MS = 60_000;
 const CUBE_VISUAL_STATE_KEY = "cube-visual-state";
 const MAX_VISUAL_RECOVERY_MOVES = 256;
+const VISUAL_STATE_SAVE_INTERVAL_MS = 500;
 
 function formatNumber(value: number) {
   return value.toFixed(3);
@@ -278,6 +279,44 @@ export function CubeConnectionProvider({ children }: { children: ReactNode }) {
   const consoleLoggingRef = useRef<ConsoleLoggingSettings>(DEFAULT_CONSOLE_LOGGING_SETTINGS);
   const practiceSessionRef = useRef<PendingPracticeSession | null>(null);
   const practiceIdleTimerRef = useRef<number | null>(null);
+  const visualStateSaveTimerRef = useRef<number | null>(null);
+  const pendingVisualStateSaveRef = useRef<{ baseFacelets: string | null; moves: Array<{ rawMove: string; t: number }> } | null>(null);
+
+  const clearVisualStateSaveTimer = useCallback(() => {
+    if (visualStateSaveTimerRef.current === null) return;
+    window.clearTimeout(visualStateSaveTimerRef.current);
+    visualStateSaveTimerRef.current = null;
+  }, []);
+
+  const flushStoredVisualState = useCallback(() => {
+    clearVisualStateSaveTimer();
+    const pending = pendingVisualStateSaveRef.current;
+    if (!pending) return;
+    pendingVisualStateSaveRef.current = null;
+    saveStoredVisualState(pending.baseFacelets, pending.moves);
+  }, [clearVisualStateSaveTimer]);
+
+  const saveStoredVisualStateNow = useCallback(
+    (baseFacelets: string | null, moves: Array<{ rawMove: string; t: number }>) => {
+      pendingVisualStateSaveRef.current = null;
+      clearVisualStateSaveTimer();
+      saveStoredVisualState(baseFacelets, moves);
+    },
+    [clearVisualStateSaveTimer],
+  );
+
+  const scheduleStoredVisualStateSave = useCallback(
+    (baseFacelets: string | null, moves: Array<{ rawMove: string; t: number }>) => {
+      if (!baseFacelets) return;
+      pendingVisualStateSaveRef.current = { baseFacelets, moves };
+      if (visualStateSaveTimerRef.current !== null) return;
+      visualStateSaveTimerRef.current = window.setTimeout(() => {
+        visualStateSaveTimerRef.current = null;
+        flushStoredVisualState();
+      }, VISUAL_STATE_SAVE_INTERVAL_MS);
+    },
+    [flushStoredVisualState],
+  );
 
   useEffect(() => {
     orientationRef.current = orientation;
@@ -302,6 +341,7 @@ export function CubeConnectionProvider({ children }: { children: ReactNode }) {
     };
 
     const unsubscribeArchiveChange = subscribeStatisticsArchiveChange(() => {
+      flushStoredVisualState();
       refreshConsoleLoggingSettings();
       const nextVisualState = loadStoredVisualState();
       visualBaseFaceletsRef.current = nextVisualState.baseFacelets;
@@ -317,7 +357,7 @@ export function CubeConnectionProvider({ children }: { children: ReactNode }) {
       window.removeEventListener(CONSOLE_LOGGING_SETTINGS_EVENT, handleConsoleLoggingSettingsChange);
       window.removeEventListener("storage", handleStorageChange);
     };
-  }, []);
+  }, [flushStoredVisualState]);
 
   const publishMove = useCallback((move: string, signal: CubeMoveSignal) => {
     let accepted = true;
@@ -424,6 +464,19 @@ export function CubeConnectionProvider({ children }: { children: ReactNode }) {
       window.removeEventListener("pagehide", settleIfIdle);
     };
   }, [clearPracticeIdleTimer, schedulePracticeIdleSettlement, settlePracticeSession]);
+
+  useEffect(() => {
+    const flushWhenLeaving = () => {
+      if (document.visibilityState === "hidden") flushStoredVisualState();
+    };
+    window.addEventListener("visibilitychange", flushWhenLeaving);
+    window.addEventListener("pagehide", flushStoredVisualState);
+    return () => {
+      flushStoredVisualState();
+      window.removeEventListener("visibilitychange", flushWhenLeaving);
+      window.removeEventListener("pagehide", flushStoredVisualState);
+    };
+  }, [flushStoredVisualState]);
 
   const updateLocalFacelets = useCallback(
     (snapshot: LocalFaceletsSnapshot) => {
@@ -573,6 +626,7 @@ export function CubeConnectionProvider({ children }: { children: ReactNode }) {
   );
 
   const resetSessionState = useCallback(() => {
+    flushStoredVisualState();
     clearBatteryRetryTimer();
     clearBatteryPollTimer();
     clearMoveIdleFaceletsTimer();
@@ -587,7 +641,7 @@ export function CubeConnectionProvider({ children }: { children: ReactNode }) {
     setFacelets(null);
     setConnectionInfo(EMPTY_INFO);
     setTelemetry(EMPTY_TELEMETRY);
-  }, [clearBatteryPollTimer, clearBatteryRetryTimer, clearMoveIdleFaceletsTimer]);
+  }, [clearBatteryPollTimer, clearBatteryRetryTimer, clearMoveIdleFaceletsTimer, flushStoredVisualState]);
 
   const logSentCommand = useCallback((command: GanCubeCommand) => {
     const settings = consoleLoggingRef.current;
@@ -645,6 +699,7 @@ export function CubeConnectionProvider({ children }: { children: ReactNode }) {
   );
 
   const handleDisconnectEvent = useCallback(() => {
+    flushStoredVisualState();
     clearBatteryRetryTimer();
     clearBatteryPollTimer();
     hideConnectionPrompt();
@@ -662,7 +717,7 @@ export function CubeConnectionProvider({ children }: { children: ReactNode }) {
     setConnectionState("disconnected");
     setConnectionInfo(EMPTY_INFO);
     setTelemetry(EMPTY_TELEMETRY);
-  }, [clearBatteryPollTimer, clearBatteryRetryTimer, hideConnectionPrompt]);
+  }, [clearBatteryPollTimer, clearBatteryRetryTimer, flushStoredVisualState, hideConnectionPrompt]);
 
   const disconnectCube = useCallback(async () => {
     const conn = connRef.current;
@@ -739,7 +794,7 @@ export function CubeConnectionProvider({ children }: { children: ReactNode }) {
             const nextVisualMoves = [...rawVisualMovesSinceBaseRef.current, rawMoveEntry].slice(-MAX_VISUAL_RECOVERY_MOVES);
             rawVisualMovesSinceBaseRef.current = nextVisualMoves;
             setRawVisualMovesSinceBase(nextVisualMoves);
-            saveStoredVisualState(visualBaseFaceletsRef.current, nextVisualMoves);
+            scheduleStoredVisualStateSave(visualBaseFaceletsRef.current, nextVisualMoves);
             enqueueLocalFaceletsMove(event);
           }
           scheduleMoveIdleFaceletsCheck();
@@ -778,7 +833,7 @@ export function CubeConnectionProvider({ children }: { children: ReactNode }) {
           rawVisualMovesSinceBaseRef.current = [];
           setVisualBaseFacelets(event.facelets);
           setRawVisualMovesSinceBase([]);
-          saveStoredVisualState(event.facelets, []);
+          saveStoredVisualStateNow(event.facelets, []);
           acceptRemoteFacelets(event.facelets, event.serial);
           setTelemetry((prev) => ({
             ...prev,
@@ -820,7 +875,9 @@ export function CubeConnectionProvider({ children }: { children: ReactNode }) {
     publishGyro,
     publishMove,
     requestBattery,
+    saveStoredVisualStateNow,
     scheduleMoveIdleFaceletsCheck,
+    scheduleStoredVisualStateSave,
     sendCubeCommand,
     showConnectionPrompt,
     trackPracticeMove,

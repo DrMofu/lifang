@@ -115,6 +115,47 @@ const EMPTY_F2L_SUBPHASE_METRICS: F2lSubphaseMetrics = {
   four: MISSING_HISTORY_VALUE,
 };
 
+type ArrayStorageCache<T> = {
+  storageKey: string;
+  raw: string;
+  value: T[];
+};
+
+let solveHistoryCache: ArrayStorageCache<SolveHistoryEntry> | null = null;
+let dailyLevelsCache: ArrayStorageCache<DailyLevelEntry> | null = null;
+let dailyPracticeCache: ArrayStorageCache<DailyPracticeEntry> | null = null;
+
+function readCachedArray<T>(
+  storageKey: string,
+  cache: ArrayStorageCache<T> | null,
+  normalize: (value: unknown) => T | null,
+): { cache: ArrayStorageCache<T>; value: T[] } {
+  const raw = window.localStorage.getItem(storageKey) || "[]";
+  if (cache?.storageKey === storageKey && cache.raw === raw) {
+    return { cache, value: cache.value };
+  }
+
+  const parsed = JSON.parse(raw);
+  if (!Array.isArray(parsed)) {
+    const nextCache: ArrayStorageCache<T> = { storageKey, raw, value: [] };
+    return { cache: nextCache, value: nextCache.value };
+  }
+
+  const normalized = parsed
+    .map(normalize)
+    .filter((entry): entry is T => entry !== null);
+  const normalizedRaw = JSON.stringify(normalized);
+  if (raw !== normalizedRaw) {
+    try {
+      window.localStorage.setItem(storageKey, normalizedRaw);
+    } catch {
+      // Keep the normalized in-memory data even if localStorage cannot be updated.
+    }
+  }
+  const nextCache: ArrayStorageCache<T> = { storageKey, raw: raw === normalizedRaw ? raw : normalizedRaw, value: normalized };
+  return { cache: nextCache, value: normalized };
+}
+
 export function getLocalDateKey(date = new Date()) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 }
@@ -306,20 +347,15 @@ export function loadSolveHistory(): SolveHistoryEntry[] {
   if (typeof window === "undefined") return [];
   const storageKey = getArchiveScopedStorageKey(CUBE_HISTORY_KEY);
   try {
-    const value = JSON.parse(window.localStorage.getItem(storageKey) || "[]");
-    if (!Array.isArray(value)) return [];
-    const history = value
-      .filter(
-        (entry): entry is SolveHistoryEntry =>
-          typeof entry?.ms === "number" && typeof entry?.ts === "number",
-      )
-      .map(normalizeSolveHistoryEntry);
-    try {
-      window.localStorage.setItem(storageKey, JSON.stringify(history));
-    } catch {
-      // Keep the normalized in-memory history even if localStorage cannot be updated.
-    }
-    return history;
+    const result = readCachedArray(storageKey, solveHistoryCache, (entry) => {
+      if (!entry || typeof entry !== "object") return null;
+      const candidate = entry as SolveHistoryEntry;
+      return typeof candidate.ms === "number" && typeof candidate.ts === "number"
+        ? normalizeSolveHistoryEntry(candidate)
+        : null;
+    });
+    solveHistoryCache = result.cache;
+    return result.value;
   } catch {
     return [];
   }
@@ -374,7 +410,11 @@ export function prependSolveHistoryEntry(history: SolveHistoryEntry[], entry: So
 export function saveSolveHistory(history: SolveHistoryEntry[]) {
   if (typeof window === "undefined") return;
   try {
-    window.localStorage.setItem(getArchiveScopedStorageKey(CUBE_HISTORY_KEY), JSON.stringify(trimSolveHistory(history)));
+    const storageKey = getArchiveScopedStorageKey(CUBE_HISTORY_KEY);
+    const normalized = trimSolveHistory(history);
+    const raw = JSON.stringify(normalized);
+    window.localStorage.setItem(storageKey, raw);
+    solveHistoryCache = { storageKey, raw, value: normalized };
     emitStatisticsArchiveChange();
   } catch {
     // Local storage can be unavailable in private contexts; the in-memory state still works.
@@ -385,15 +425,9 @@ export function loadDailyLevels(): DailyLevelEntry[] {
   if (typeof window === "undefined") return [];
   const storageKey = getArchiveScopedStorageKey(DAILY_LEVELS_KEY);
   try {
-    const value = JSON.parse(window.localStorage.getItem(storageKey) || "[]");
-    if (!Array.isArray(value)) return [];
-    const levels = value.map(normalizeDailyLevelEntry).filter((entry): entry is DailyLevelEntry => entry !== null);
-    try {
-      window.localStorage.setItem(storageKey, JSON.stringify(levels));
-    } catch {
-      // Keep the normalized in-memory levels even if localStorage cannot be updated.
-    }
-    return levels;
+    const result = readCachedArray(storageKey, dailyLevelsCache, normalizeDailyLevelEntry);
+    dailyLevelsCache = result.cache;
+    return result.value;
   } catch {
     return [];
   }
@@ -467,8 +501,11 @@ export function normalizeDailyLevelEntry(value: unknown): DailyLevelEntry | null
 export function saveDailyLevels(levels: DailyLevelEntry[]) {
   if (typeof window === "undefined") return;
   try {
+    const storageKey = getArchiveScopedStorageKey(DAILY_LEVELS_KEY);
     const normalized = levels.map(normalizeDailyLevelEntry).filter((entry): entry is DailyLevelEntry => entry !== null);
-    window.localStorage.setItem(getArchiveScopedStorageKey(DAILY_LEVELS_KEY), JSON.stringify(normalized));
+    const raw = JSON.stringify(normalized);
+    window.localStorage.setItem(storageKey, raw);
+    dailyLevelsCache = { storageKey, raw, value: normalized };
     emitStatisticsArchiveChange();
   } catch {
     // Local storage can be unavailable in private contexts; the in-memory state still works.
@@ -520,17 +557,9 @@ export function loadDailyPracticeSeconds(archiveId?: string): DailyPracticeEntry
   if (typeof window === "undefined") return [];
   const storageKey = getArchiveScopedStorageKey(DAILY_PRACTICE_SECONDS_KEY, archiveId);
   try {
-    const value = JSON.parse(window.localStorage.getItem(storageKey) || "[]");
-    if (!Array.isArray(value)) return [];
-    const normalized = value
-      .map(normalizeDailyPracticeEntry)
-      .filter((entry): entry is DailyPracticeEntry => entry !== null);
-    try {
-      window.localStorage.setItem(storageKey, JSON.stringify(normalized));
-    } catch {
-      // Keep the normalized in-memory practice data even if localStorage cannot be updated.
-    }
-    return normalized;
+    const result = readCachedArray(storageKey, dailyPracticeCache, normalizeDailyPracticeEntry);
+    dailyPracticeCache = result.cache;
+    return result.value;
   } catch {
     return [];
   }
@@ -575,8 +604,11 @@ export function saveDailyPracticeSeconds(entries: DailyPracticeEntry[], archiveI
         byDate.set(normalized.localDate, normalized);
       }
     });
+    const storageKey = getArchiveScopedStorageKey(DAILY_PRACTICE_SECONDS_KEY, archiveId);
     const normalized = Array.from(byDate.values()).sort((left, right) => left.localDate.localeCompare(right.localDate));
-    window.localStorage.setItem(getArchiveScopedStorageKey(DAILY_PRACTICE_SECONDS_KEY, archiveId), JSON.stringify(normalized));
+    const raw = JSON.stringify(normalized);
+    window.localStorage.setItem(storageKey, raw);
+    dailyPracticeCache = { storageKey, raw, value: normalized };
     emitStatisticsArchiveChange();
   } catch {
     // Local storage can be unavailable in private contexts; the in-memory state still works.
