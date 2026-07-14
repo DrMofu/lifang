@@ -278,6 +278,12 @@ function fmtSolveDate(timestamp: number) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 }
 
+function getYesterdayDailyTestDateKey() {
+  const date = new Date();
+  date.setDate(date.getDate() - 1);
+  return getDailyTestDateKey(date);
+}
+
 function formatPhaseTimeDelta(metrics: CfopPhaseMetrics | undefined, key: CfopPhaseKey) {
   if (!metrics) return MISSING_HISTORY_VALUE;
   const current = metrics[key];
@@ -1286,7 +1292,8 @@ export function CubePracticeApp() {
         });
         dailyTestRef.current = null;
         setDailyTest(null);
-        setScrambleNotice(`今日五次测试完成，平均 ${fmtShort(averageMs)}。`);
+        const completedLabel = activeDailyTest.localDate === getDailyTestDateKey() ? "今日测试" : "补测成绩";
+        setScrambleNotice(`${completedLabel}完成，平均 ${fmtShort(averageMs)}。`);
       } else {
         const nextRun = { ...activeDailyTest, solves: nextDailySolves };
         dailyTestRef.current = nextRun;
@@ -2420,14 +2427,13 @@ export function CubePracticeApp() {
     startScrambleAttempt(true);
   }
 
-  function startDailyLevelTest() {
+  function startDailyLevelTest(localDate = getDailyTestDateKey()) {
     if (!isConnected) {
       setScrambleNotice("请先连接智能魔方。");
       return;
     }
-    const today = getDailyTestDateKey();
-    if (dailyLevels.some((entry) => entry.localDate === today)) {
-      setScrambleNotice("今日五次测试已完成，明天再来。");
+    if (dailyLevels.some((entry) => entry.localDate === localDate)) {
+      setScrambleNotice(localDate === getDailyTestDateKey() ? "今日测试已完成，明天再来。" : "该日期测试已完成。");
       return;
     }
     const canStartFromScramble =
@@ -2436,8 +2442,8 @@ export function CubePracticeApp() {
     const canStartFromFree = practiceModeRef.current === "free" && phaseRef.current !== "solving";
     if (dailyTestRef.current || smartSolveBusy || (!canStartFromScramble && !canStartFromFree)) return;
     const run: DailyTestRun = {
-      id: `daily-${today}-${Date.now()}`,
-      localDate: today,
+      id: `daily-${localDate}-${Date.now()}`,
+      localDate,
       solves: [],
     };
     clearFreeTimers();
@@ -2531,19 +2537,28 @@ export function CubePracticeApp() {
   );
   const isConnected = connectionState === "connected";
   const todayLocalDate = getDailyTestDateKey();
+  const yesterdayLocalDate = getYesterdayDailyTestDateKey();
   const todayDailyLevel = useMemo(
     () => dailyLevels.find((entry) => entry.localDate === todayLocalDate) ?? null,
     [dailyLevels, todayLocalDate],
   );
+  const yesterdayDailyLevel = useMemo(
+    () => dailyLevels.find((entry) => entry.localDate === yesterdayLocalDate) ?? null,
+    [dailyLevels, yesterdayLocalDate],
+  );
   const dailyTestProgress = dailyTest?.solves.length ?? 0;
-  const dailyTestDisplaySolves = todayDailyLevel?.solves ?? dailyTest?.solves ?? [];
+  const dailyTestDisplayDate = dailyTest?.localDate ?? todayLocalDate;
+  const dailyTestDisplaySolves = dailyTest?.solves ?? todayDailyLevel?.solves ?? [];
   const smartSolveVisible = smartSolveStatus !== "idle";
   const smartSolveBusy = smartSolveStatus === "loading" || smartSolveStatus === "active";
   const canInterruptScrambleAttempt = practiceMode === "scramble" && (phase === "scrambling" || phase === "inspect");
   const canStartDailyTestFromScramble = practiceMode === "scramble" && (phase === "idle" || phase === "done" || canInterruptScrambleAttempt);
   const canStartDailyTestFromFree = practiceMode === "free" && phase !== "solving";
   const canSwitchMode = !dailyTest && !smartSolveBusy && (phase === "idle" || phase === "done" || canInterruptScrambleAttempt);
-  const canStartDailyTest = isConnected && !todayDailyLevel && !dailyTest && !smartSolveBusy && (canStartDailyTestFromScramble || canStartDailyTestFromFree);
+  const canStartDailyTestSession = isConnected && !dailyTest && !smartSolveBusy && (canStartDailyTestFromScramble || canStartDailyTestFromFree);
+  const canStartTodayDailyTest = !todayDailyLevel && canStartDailyTestSession;
+  const showYesterdayMakeupTest = !todayDailyLevel && !yesterdayDailyLevel;
+  const canStartYesterdayMakeupTest = showYesterdayMakeupTest && canStartDailyTestSession;
   const freeIdleProgress = freeState === "armed"
     ? 1
     : freeState === "scrambling"
@@ -2599,8 +2614,8 @@ export function CubePracticeApp() {
                 <div className="practice-card-title">每日测试</div>
                 <div className="practice-kicker">DAILY TEST</div>
               </div>
-              <div className="dt-date" tabIndex={0} aria-label={`${todayLocalDate}，每日 00:00 更新`}>
-                {todayLocalDate}
+              <div className="dt-date" tabIndex={0} aria-label={`${dailyTestDisplayDate}，每日 00:00 更新`}>
+                {dailyTestDisplayDate}
               </div>
             </div>
             <div className="dt-progress" aria-label="每日五次测试进度">
@@ -2613,15 +2628,34 @@ export function CubePracticeApp() {
                 );
               })}
             </div>
-            <div className="dt-actions">
+            <div className={`dt-actions${!dailyTest && showYesterdayMakeupTest ? " dt-actions-split" : ""}`}>
               {!dailyTest && (
-                <button
-                  className="practice-btn practice-btn-primary"
-                  onClick={startDailyLevelTest}
-                  disabled={Boolean(todayDailyLevel) || !canStartDailyTest}
-                >
-                  {todayDailyLevel && dailyTestAverageLabel ? `今日平均用时 ${dailyTestAverageLabel}` : "开始五次测试"}
-                </button>
+                showYesterdayMakeupTest ? (
+                  <>
+                    <button
+                      className="practice-btn practice-btn-ghost"
+                      onClick={() => startDailyLevelTest(yesterdayLocalDate)}
+                      disabled={!canStartYesterdayMakeupTest}
+                    >
+                      补测昨日成绩
+                    </button>
+                    <button
+                      className="practice-btn practice-btn-primary"
+                      onClick={() => startDailyLevelTest(todayLocalDate)}
+                      disabled={!canStartTodayDailyTest}
+                    >
+                      开始今日测试
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    className="practice-btn practice-btn-primary"
+                    onClick={() => startDailyLevelTest(todayLocalDate)}
+                    disabled={Boolean(todayDailyLevel) || !canStartTodayDailyTest}
+                  >
+                    {todayDailyLevel && dailyTestAverageLabel ? `今日平均用时 ${dailyTestAverageLabel}` : "开始今日测试"}
+                  </button>
+                )
               )}
               {dailyTest && (
                 <button className="practice-btn practice-btn-ghost" onClick={cancelCurrentAttempt}>

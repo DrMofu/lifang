@@ -117,6 +117,9 @@
   box-shadow: 0 14px 24px rgba(47, 111, 242, 0.25);
   color: #ffffff;
 }
+.lf-practice-app .daily-test-card .practice-btn-primary {
+  box-shadow: none;
+}
 .practice-btn-ghost {
   border-color: var(--tech-line);
   background: rgba(255, 255, 255, 0.78);
@@ -165,6 +168,14 @@
   display: grid;
   gap: 8px;
   margin-top: 12px;
+}
+.lf-practice-app .dt-actions-split {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+.lf-practice-app .dt-actions-split .practice-btn {
+  min-width: 0;
+  padding-right: 8px;
+  padding-left: 8px;
 }
 .lf-practice-app .dt-recent {
   border: 1px solid var(--tech-line);

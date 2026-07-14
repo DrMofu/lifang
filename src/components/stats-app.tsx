@@ -206,6 +206,13 @@ function fmtPracticeMinutesCompact(seconds: number) {
   return `${Math.round(seconds / 60)}分钟`;
 }
 
+function fmtPracticeDuration(seconds: number) {
+  const totalMinutes = Math.round(seconds / 60);
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  return `${hours}小时${minutes}分钟`;
+}
+
 function averageDailyLevelMoves(entry: DailyLevelEntry) {
   const excluded = getDailyLevelExcludedSolveIndexes(entry.solves);
   const includedMoves = entry.solves
@@ -722,7 +729,6 @@ export function StatsApp() {
     today.setHours(0, 0, 0, 0);
     const currentWeekStart = new Date(today);
     currentWeekStart.setDate(today.getDate() - ((today.getDay() + 6) % 7));
-    let max = 0;
     const grid = Array.from({ length: HEATMAP_WEEK_COUNT }, (_, colIndex) => {
       const weekStart = new Date(currentWeekStart);
       weekStart.setDate(currentWeekStart.getDate() - (HEATMAP_WEEK_COUNT - 1 - colIndex) * 7);
@@ -735,12 +741,12 @@ export function StatsApp() {
         const count = isFuture ? 0 : days.get(key) || 0;
         const practiceSeconds = isFuture ? undefined : practiceSecondsByDate.get(practiceKey);
         const heatSeconds = practiceSeconds ?? count * HEATMAP_ESTIMATED_SECONDS_PER_SOLVE;
-        max = Math.max(max, count);
         return { date, count, practiceSeconds: practiceSeconds ?? null, heatSeconds, isFuture };
       });
     });
     const cells = grid.flat();
     const total = cells.reduce((sum, cell) => sum + cell.count, 0);
+    const totalPracticeSeconds = cells.reduce((sum, cell) => sum + cell.heatSeconds, 0);
     const activeDays = cells.filter((cell) => cell.count > 0).length;
     const todayPracticeSeconds = practiceSecondsByDate.get(getDailyTestDateKey(today)) ?? 0;
     const monthLabels = grid.map((col, index) => {
@@ -749,7 +755,7 @@ export function StatsApp() {
       if (month == null || (index > 0 && month === prevMonth)) return "";
       return `${month + 1}月`;
     });
-    return { activeDays, grid, max, monthLabels, today, todayPracticeSeconds, total };
+    return { activeDays, grid, monthLabels, today, todayPracticeSeconds, total, totalPracticeSeconds };
   }, [dailyPractice, history]);
 
   const cfopBreakdown = useMemo(() => {
@@ -1494,9 +1500,9 @@ export function StatsApp() {
                 <div className="st-ch-title">练习热力图 · 最近 16 周</div>
               </div>
               <div className="st-heat-summary" aria-label="最近 16 周练习摘要">
-                <span><b>{heatmap.activeDays}</b> 活跃天</span>
-                <span><b>{heatmap.total}</b> 次练习</span>
-                <span><b>{heatmap.max}</b> 单日最高</span>
+                <span>活跃天数 <b>{heatmap.activeDays}</b></span>
+                <span>练习次数 <b>{heatmap.total}</b></span>
+                <span>训练总时长 <b>{fmtPracticeDuration(heatmap.totalPracticeSeconds)}</b></span>
               </div>
             </div>
             <div className="hm-panel">
