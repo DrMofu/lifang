@@ -3,6 +3,7 @@
 import { type CSSProperties, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { AlgorithmStepToken, type AlgorithmStepStatus } from "@/components/algorithm-step-token";
 import { AppFooter, AppTopbar } from "@/components/app-shell";
+import { useLanguage } from "@/components/language-provider";
 import { useCubeAppearance } from "@/components/cube-appearance-provider";
 import { useCubeConnection } from "@/components/cube-connection-provider";
 import { MoveToken } from "@/components/move-token";
@@ -325,6 +326,7 @@ function trainerHistoryOptionsTitle(options: CfopTrainerHistoryOptions) {
 }
 
 export function CfopTrainerApp() {
+  const { t } = useLanguage();
   const cubeMountRef = useRef<HTMLDivElement | null>(null);
   const historyListRef = useRef<HTMLDivElement | null>(null);
   const cubeApiRef = useRef<SmartCubeApi | null>(null);
@@ -363,7 +365,7 @@ export function CfopTrainerApp() {
 
   const [selectedPhase, setSelectedPhase] = useState<CfopTrainerPhase>(readStoredTrainerPhase);
   const [state, setState] = useState<TrainerState>("idle");
-  const [notice, setNotice] = useState("选择阶段后开始专项训练。");
+  const [notice, setNotice] = useState(t("选择阶段后开始专项训练。"));
   const [scenario, setScenario] = useState<CfopTrainerScenario | null>(null);
   const [observeMs, setObserveMs] = useState(0);
   const [solveMs, setSolveMs] = useState(0);
@@ -568,7 +570,7 @@ export function CfopTrainerApp() {
       stableScore,
     };
   }, [averageSettings, phaseHistory]);
-  const stableScoreDescription = describeAverageTimeSettings(averageSettings);
+  const stableScoreDescription = t(describeAverageTimeSettings(averageSettings));
 
   const resetSessionResults = useCallback(() => {
     sessionResultsRef.current = [];
@@ -778,7 +780,7 @@ export function CfopTrainerApp() {
     selectedPhase,
   ]);
 
-  const resetRun = useCallback((message = "选择阶段后开始专项训练。") => {
+  const resetRun = useCallback((message = t("选择阶段后开始专项训练。")) => {
     runIdRef.current += 1;
     clearAutoNextTimer();
     resetSessionResults();
@@ -798,7 +800,7 @@ export function CfopTrainerApp() {
     updateTrainerState("idle");
     setNotice(message);
     renderTrainerCubeFacelets(SOLVED_FACELETS);
-  }, [clearAutoNextTimer, clearVisualPendingTimer, renderTrainerCubeFacelets, resetFormulaHint, resetSessionResults, updateTrainerState]);
+  }, [clearAutoNextTimer, clearVisualPendingTimer, renderTrainerCubeFacelets, resetFormulaHint, resetSessionResults, updateTrainerState, t]);
 
   const cancelRun = useCallback(() => {
     runIdRef.current += 1;
@@ -813,8 +815,8 @@ export function CfopTrainerApp() {
       setSolveMs(Math.max(0, now - solveStartRef.current));
     }
     updateTrainerState("cancelled");
-    setNotice("本组十局已取消，当前魔方状态已保留。");
-  }, [clearAutoNextTimer, flushVisualPendingMove, resetSessionResults, updateTrainerState]);
+    setNotice(t("本组十局已取消，当前魔方状态已保留。"));
+  }, [clearAutoNextTimer, flushVisualPendingMove, resetSessionResults, updateTrainerState, t]);
 
   const finishRun = useCallback((facelets: string) => {
     const phase = selectedPhaseRef.current;
@@ -844,11 +846,11 @@ export function CfopTrainerApp() {
         options: getCurrentHistoryOptions(phase),
       };
       setHistory((prev) => prependCfopTrainerHistoryEntry(prev, entry));
-      setNotice(`${trainerPhaseShort(phase)} 阶段十局完成，已记录平均成绩。`);
+      setNotice(t(`${trainerPhaseShort(phase)} 阶段十局完成，已记录平均成绩。`));
       return;
     }
-    setNotice(`${trainerPhaseShort(phase)} 阶段第 ${nextResults.length}/${TRAINER_SESSION_ROUNDS} 局完成，准备自动下一局。`);
-  }, [getCurrentHistoryOptions]);
+    setNotice(t(`${trainerPhaseShort(phase)} 阶段第 ${nextResults.length}/${TRAINER_SESSION_ROUNDS} 局完成，准备自动下一局。`));
+  }, [getCurrentHistoryOptions, t]);
 
   const recordSolveMove = useCallback((move: string) => {
     const nextGroup = solveMoveCountGroup(move);
@@ -891,10 +893,10 @@ export function CfopTrainerApp() {
       setSolveMs(0);
       setTimerKind("solve");
       updateTrainerState("solving");
-      setNotice(`正在完成 ${trainerPhaseShort(selectedPhaseRef.current)} 阶段。`);
+      setNotice(t(`正在完成 ${trainerPhaseShort(selectedPhaseRef.current)} 阶段。`));
       await processSolveMove(firstMove);
     },
-    [processSolveMove, updateTrainerState],
+    [processSolveMove, updateTrainerState, t],
   );
 
   const enterObserve = useCallback((message: string) => {
@@ -908,7 +910,7 @@ export function CfopTrainerApp() {
 
   const beginCrossScenario = useCallback(async (runId: number) => {
     updateTrainerState("loading");
-    setNotice("正在生成 Cross 随机打乱。");
+    setNotice(t("正在生成 Cross 随机打乱。"));
     try {
       let nextScramble = generateScramble();
       let scrambledFacelets = await applyMovesToFacelets(SOLVED_FACELETS, nextScramble);
@@ -925,17 +927,17 @@ export function CfopTrainerApp() {
       setObserveMs(0);
       setSolveMs(0);
       renderTrainerCubeFacelets(scrambledFacelets);
-      enterObserve("Cross 随机打乱已生成，观察后转第一下开始计时。");
+      enterObserve(t("Cross 随机打乱已生成，观察后转第一下开始计时。"));
     } catch (error) {
       if (runIdRef.current !== runId) return;
       updateTrainerState("error");
-      setNotice(error instanceof Error ? error.message : "Cross 打乱生成失败，请重试。");
+      setNotice(error instanceof Error ? error.message : t("Cross 打乱生成失败，请重试。"));
     }
-  }, [enterObserve, renderTrainerCubeFacelets, resetFormulaHint, updateTrainerState]);
+  }, [enterObserve, renderTrainerCubeFacelets, resetFormulaHint, updateTrainerState, t]);
 
   const beginFormulaScenario = useCallback(async (phase: Exclude<CfopTrainerPhase, "cross">, runId: number) => {
     updateTrainerState("loading");
-    setNotice("正在生成专项场景。");
+    setNotice(t("正在生成专项场景。"));
     try {
       const nextScenario = await createFormulaTrainerScenario(phase, { includeRotations: formulaRotationVariants });
       if (!mountedRef.current || runIdRef.current !== runId || selectedPhaseRef.current !== phase) return;
@@ -950,13 +952,13 @@ export function CfopTrainerApp() {
       resetFormulaHint(parseAlgorithm(nextScenario.sourceAlgo));
       setScenario(nextScenario);
       renderTrainerCubeFacelets(nextScenario.startFacelets);
-      enterObserve(`${nextScenario.caseName} · ${rotationLabel(nextScenario.rotation)}，转第一下开始计时。`);
+      enterObserve(t(`${nextScenario.caseName} · ${rotationLabel(nextScenario.rotation)}，转第一下开始计时。`));
     } catch (error) {
       if (runIdRef.current !== runId) return;
       updateTrainerState("error");
-      setNotice(error instanceof Error ? error.message : "场景生成失败，请重试。");
+      setNotice(error instanceof Error ? error.message : t("场景生成失败，请重试。"));
     }
-  }, [enterObserve, formulaRotationVariants, renderTrainerCubeFacelets, resetFormulaHint, updateTrainerState]);
+  }, [enterObserve, formulaRotationVariants, renderTrainerCubeFacelets, resetFormulaHint, updateTrainerState, t]);
 
   const beginTrainerRound = useCallback(async (runId: number) => {
     const phase = selectedPhaseRef.current;
@@ -980,9 +982,9 @@ export function CfopTrainerApp() {
       await connectRealCube();
       return;
     }
-    resetRun("准备开始十局专项训练。");
+    resetRun(t("准备开始十局专项训练。"));
     await beginTrainerRound(runIdRef.current);
-  }, [beginTrainerRound, cancelRun, connectRealCube, connected, resetRun, trainingActive]);
+  }, [beginTrainerRound, cancelRun, connectRealCube, connected, resetRun, trainingActive, t]);
 
   useEffect(() => {
     if (
@@ -1099,10 +1101,10 @@ export function CfopTrainerApp() {
         })
         .catch((error) => {
           updateTrainerState("error");
-          setNotice(error instanceof Error ? error.message : "处理转动时出错，请重开本局。");
+          setNotice(error instanceof Error ? error.message : t("处理转动时出错，请重开本局。"));
         });
     },
-    [beginSolve, processSolveMove, queueVisualMove, updateTrainerState],
+    [beginSolve, processSolveMove, queueVisualMove, updateTrainerState, t],
   );
 
   useEffect(() => subscribeMove((move) => enqueueMove(move)), [enqueueMove, subscribeMove]);
@@ -1134,7 +1136,7 @@ export function CfopTrainerApp() {
     selectedPhaseRef.current = phase;
     saveStoredTrainerPhase(phase);
     setSelectedPhase(phase);
-    resetRun(`${trainerPhaseShort(phase)} 阶段已选择。`);
+    resetRun(t(`${trainerPhaseShort(phase)} 阶段已选择。`));
   };
 
   return (
@@ -1145,11 +1147,11 @@ export function CfopTrainerApp() {
           <div className="practice-card trainer-phase-card">
             <div className="practice-card-head">
               <div className="practice-title-line">
-                <div className="practice-card-title">专项阶段</div>
+                <div className="practice-card-title">{t("专项阶段")}</div>
                 <div className="practice-kicker">CFOP TRAINER</div>
               </div>
             </div>
-            <div className="trainer-phase-grid" aria-label="专项阶段选择">
+            <div className="trainer-phase-grid" aria-label={t("专项阶段选择")}>
               {CFOP_TRAINER_PHASES.map((phase) => (
                 <button
                   key={phase.key}
@@ -1162,8 +1164,7 @@ export function CfopTrainerApp() {
                 </button>
               ))}
             </div>
-            <div className="dt-meta">
-              目标：{activePhaseMeta.goal}。
+            <div className="dt-meta">{t("目标：")} {t(activePhaseMeta.goal)}.
             </div>
             {selectedPhase !== "cross" && (
               <>
@@ -1179,11 +1180,11 @@ export function CfopTrainerApp() {
                     }}
                   />
                   <span>
-                    <b>加入 Y 轴旋转变体</b>
+                    <b>{t("加入 Y 轴旋转变体")}</b>
                     <small>
                       {formulaRotationVariants
-                        ? `当前随机池：${formulaTrainerScenarioCount(selectedPhase, { includeRotations: true })} 个（公式库 ×4）`
-                        : `当前随机池：${formulaTrainerScenarioCount(selectedPhase)} 个`}
+                        ? t(`当前随机池：${formulaTrainerScenarioCount(selectedPhase, { includeRotations: true })} 个（公式库 ×4）`)
+                        : t(`当前随机池：${formulaTrainerScenarioCount(selectedPhase)} 个`)}
                     </small>
                   </span>
                 </label>
@@ -1200,8 +1201,8 @@ export function CfopTrainerApp() {
                       }}
                     />
                     <span>
-                      <b>仅判定目标棱</b>
-                      <small>只要本次棱块归位，即算完成。</small>
+                      <b>{t("仅判定目标棱")}</b>
+                      <small>{t("只要本次棱块归位，即算完成。")}</small>
                     </span>
                   </label>
                 )}
@@ -1217,8 +1218,8 @@ export function CfopTrainerApp() {
                     }}
                   />
                   <span>
-                    <b>开启公式提示</b>
-                    <small>开启后在训练状态栏显示当前公式。</small>
+                    <b>{t("开启公式提示")}</b>
+                    <small>{t("开启后在训练状态栏显示当前公式。")}</small>
                   </span>
                 </label>
                 <label className="trainer-variant-toggle">
@@ -1234,8 +1235,8 @@ export function CfopTrainerApp() {
                     }}
                   />
                   <span>
-                    <b>显示旋转箭头</b>
-                    <small>{formulaHintEnabled ? "开启后在魔方上显示当前步骤的旋转箭头。" : "开启公式提示后可操作。"}</small>
+                    <b>{t("显示旋转箭头")}</b>
+                    <small>{formulaHintEnabled ? t("开启后在魔方上显示当前步骤的旋转箭头。") : t("开启公式提示后可操作。")}</small>
                   </span>
                 </label>
               </>
@@ -1245,28 +1246,28 @@ export function CfopTrainerApp() {
           <div className="practice-card trainer-case-card">
             <div className="practice-card-head">
               <div className="practice-title-line">
-                <div className="practice-card-title">当前场景</div>
+                <div className="practice-card-title">{t("当前场景")}</div>
                 <div className="practice-kicker">CASE</div>
               </div>
             </div>
-            <div className="trainer-case-name">{scenario?.caseName ?? (selectedPhase === "cross" ? SCRAMBLE_LABEL : "尚未生成")}</div>
+            <div className="trainer-case-name">{t(scenario?.caseName ?? (selectedPhase === "cross" ? SCRAMBLE_LABEL : "尚未生成"))}</div>
             <div className="trainer-case-meta">
-              <span>{activePhaseMeta.title}</span>
-              <span>旋转 {rotationLabel(scenario?.rotation ?? 0)}</span>
+              <span>{t(activePhaseMeta.title)}</span>
+              <span>{t("旋转")}{" "}{rotationLabel(scenario?.rotation ?? 0)}</span>
             </div>
           </div>
 
           <div className="practice-card trainer-summary-card">
             <div className="practice-card-head">
               <div className="practice-title-line">
-                <div className="practice-card-title">阶段摘要</div>
+                <div className="practice-card-title">{t("阶段摘要")}</div>
                 <div className="practice-kicker">SUMMARY</div>
               </div>
             </div>
             <div className="stat-grid">
               <div className="st st-primary"><div className="st-l">AO5</div><div className="st-v">{fmtShort(summary.avg5)}</div></div>
               <div className="st st-stable-score" tabIndex={0}>
-                <div className="st-l">稳定成绩</div>
+                <div className="st-l">{t("稳定成绩")}</div>
                 <div className="st-v">{fmtShort(summary.stableScore)}</div>
                 <span className="stable-score-popover" role="tooltip">
                   {stableScoreDescription}
@@ -1288,9 +1289,7 @@ export function CfopTrainerApp() {
                   aria-keyshortcuts="H"
                   aria-pressed={f2lFocusMode}
                 >
-                  <span className="tag-key" aria-hidden="true">H</span>
-                  专注模式
-                </button>
+                  <span className="tag-key" aria-hidden="true">H</span>{t("专注模式")}</button>
               )}
               <button
                 className={`tag tag-btn${gyroDisabled ? "" : " active"}`}
@@ -1301,7 +1300,7 @@ export function CfopTrainerApp() {
                 aria-describedby={gyroCostNoticeVisible ? "gyro-cost-notice" : undefined}
               >
                 <span className="tag-key" aria-hidden="true">L</span>
-                {gyroDisabled ? "禁用陀螺仪" : "启用陀螺仪"}
+                {gyroDisabled ? t("禁用陀螺仪") : t("启用陀螺仪")}
               </button>
               <button
                 className="tag tag-btn stage-reset-btn"
@@ -1310,27 +1309,23 @@ export function CfopTrainerApp() {
                 disabled={!canResetDisplayOrientation}
                 aria-keyshortcuts="R"
               >
-                <span className="tag-key" aria-hidden="true">R</span>
-                视角归位
-              </button>
+                <span className="tag-key" aria-hidden="true">R</span>{t("视角归位")}</button>
             </div>
             {gyroCostNoticeVisible && (
               <div
                 className={`gyro-cost-notice${gyroCostNoticeFading ? " fading" : ""}`}
                 id="gyro-cost-notice"
                 role="status"
-              >
-                开启陀螺仪功能会导致较大计算开销
-              </div>
+              >{t("开启陀螺仪功能会导致较大计算开销")}</div>
             )}
             <div className="stage-bottom-stack">
               {formulaHintVisible && (
-                <div className="stage-hint trainer-formula-stage" role="status" aria-label="公式提示">
+                <div className="stage-hint trainer-formula-stage" role="status" aria-label={t("公式提示")}>
                   <div className="sh-head sh-head-scramble">
-                    <div className="sh-kicker">公式提示</div>
+                    <div className="sh-kicker">{t("公式提示")}</div>
                     {formulaHintUndoDisplay.length > 0 && (
                       <div className="sh-notice sh-notice-inline error">
-                        <span className="sh-notice-label">撤销提示：请依次转</span>
+                        <span className="sh-notice-label">{t("撤销提示：请依次转")}</span>
                         <span className="sh-undo-list">
                           {[...formulaHintUndoDisplay].reverse().map((move, index) => (
                             <MoveToken key={`${move}-${index}`} move={move} />
@@ -1378,16 +1373,16 @@ export function CfopTrainerApp() {
             <div className="t-display t-active">{fmtTime(timerDisplayMs)}</div>
             <div className="t-phase">
               {autoNextPending
-                ? `第 ${sessionRoundCount + 1}/${TRAINER_SESSION_ROUNDS} 局即将开始`
+                ? t(`第 ${sessionRoundCount + 1}/${TRAINER_SESSION_ROUNDS} 局即将开始`)
                 : state === "cancelled"
-                ? "本组已取消"
+                ? t("本组已取消")
                 : timerKind === "observe"
-                  ? "观察 / 反应计时"
+                  ? t("观察 / 反应计时")
                   : state === "solving"
-                    ? "阶段复原计时"
+                    ? t("阶段复原计时")
                     : sessionRoundCount >= TRAINER_SESSION_ROUNDS
-                      ? "十局专项完成"
-                      : "十局专项计时器"}
+                      ? t("十局专项完成")
+                      : t("十局专项计时器")}
             </div>
           </div>
 
@@ -1399,32 +1394,32 @@ export function CfopTrainerApp() {
               disabled={connecting}
               aria-keyshortcuts="Space"
             >
-              <span>{canCancelTrainerAction ? "取消 · 按 SPACE" : connected ? "开始 · 按 SPACE" : "连接智能魔方"}</span>
+              <span>{canCancelTrainerAction ? t("取消 · 按 SPACE") : connected ? t("开始 · 按 SPACE") : t("连接智能魔方")}</span>
             </button>
           </div>
 
           <div className="solve-metrics">
             <div className="practice-card-head">
               <div className="practice-title-line">
-                <div className="practice-card-title">成绩详情</div>
+                <div className="practice-card-title">{t("成绩详情")}</div>
                 <div className="practice-kicker">DETAILS</div>
               </div>
             </div>
             <div className="trainer-metric-grid">
               <div className="solve-phase-card">
-                <span>平均观察</span>
+                <span>{t("平均观察")}</span>
                 <b>{fmtShort(sessionAverageObserveMs)}</b>
               </div>
               <div className="solve-phase-card">
-                <span>平均复原</span>
+                <span>{t("平均复原")}</span>
                 <b>{fmtShort(sessionAverageSolveMs)}</b>
               </div>
               <div className="solve-phase-card">
-                <span>本组进度</span>
+                <span>{t("本组进度")}</span>
                 <b>{sessionRoundCount}/{TRAINER_SESSION_ROUNDS}</b>
               </div>
               <div className="solve-phase-card">
-                <span>历史组数</span>
+                <span>{t("历史组数")}</span>
                 <b>{summary.count}</b>
               </div>
             </div>
@@ -1433,12 +1428,12 @@ export function CfopTrainerApp() {
           <div className="hist hist-right trainer-history">
             <div className="practice-card-head">
               <div className="practice-title-line">
-                <div className="practice-card-title">专项记录</div>
+                <div className="practice-card-title">{t("专项记录")}</div>
                 <div className="practice-kicker">HISTORY</div>
               </div>
             </div>
             {filteredHistory.length === 0 ? (
-              <div className="hist-empty">暂无 {trainerPhaseShort(selectedPhase)} 阶段记录</div>
+              <div className="hist-empty">{t("暂无")}{" "}{trainerPhaseShort(selectedPhase)}{" "}{t("阶段记录")}</div>
             ) : (
               <div
                 className={`hist-list trainer-history-list${historyScrolling ? " scrolling" : ""}`}
@@ -1459,15 +1454,15 @@ export function CfopTrainerApp() {
                     : "0%";
                   const isBest = filteredHistoryStats.best === barMs;
                   const historyTitle = isCrossRecord
-                    ? `${entry.rounds}局平均：观察 ${fmtShort(entry.observeMs)}，复原 ${fmtShort(entry.solveMs)}，${formatMoveAverage(entry.moves)}，${optionTitle}`
-                    : `${entry.rounds}局平均：总用时 ${fmtShort(totalMs)}，${optionTitle}`;
+                    ? t(`${entry.rounds}局平均：观察 ${fmtShort(entry.observeMs)}，复原 ${fmtShort(entry.solveMs)}，${formatMoveAverage(entry.moves)}，${optionTitle}`)
+                    : t(`${entry.rounds}局平均：总用时 ${fmtShort(totalMs)}，${optionTitle}`);
                   return (
                     <div
                       key={`${entry.ts}-${index}`}
                       className={`hist-row trainer-history-row${isCrossRecord ? " trainer-history-row-cross" : " trainer-history-row-total"}${isBest ? " best" : ""}`}
                       tabIndex={0}
                       title={historyTitle}
-                      aria-label={`专项记录 ${trainerPhaseShort(entry.phase)} #${historyNumber}，${historyTitle}`}
+                      aria-label={t(`专项记录 ${trainerPhaseShort(entry.phase)} #${historyNumber}，${historyTitle}`)}
                     >
                       <span className="hr-i">{trainerPhaseShort(entry.phase)}#{String(historyNumber).padStart(2, "0")}</span>
                       <span className="hr-track" aria-hidden="true">
@@ -1475,17 +1470,17 @@ export function CfopTrainerApp() {
                       </span>
                       {isCrossRecord ? (
                         <>
-                          <span className="trainer-history-value">观察 {fmtShort(entry.observeMs)}</span>
-                          <span className="trainer-history-value">复原 {fmtShort(entry.solveMs)}</span>
-                          <span className="trainer-history-value">步数 {formatMoveAverage(entry.moves)}</span>
+                          <span className="trainer-history-value">{t("观察")}{" "}{fmtShort(entry.observeMs)}</span>
+                          <span className="trainer-history-value">{t("复原")}{" "}{fmtShort(entry.solveMs)}</span>
+                          <span className="trainer-history-value">{t("步数")}{" "}{formatMoveAverage(entry.moves)}</span>
                         </>
                       ) : (
-                        <span className="trainer-history-total">总用时 {fmtShort(totalMs)}</span>
+                        <span className="trainer-history-total">{t("总用时")}{" "}{fmtShort(totalMs)}</span>
                       )}
                       <span className="trainer-history-options" aria-label={optionTitle}>
                         {optionBadges.length > 0
                           ? optionBadges.map((badge) => <b key={badge}>{badge}</b>)
-                          : <b>标准</b>}
+                          : <b>{t("标准")}</b>}
                       </span>
                     </div>
                   );

@@ -5,17 +5,20 @@ import Link from "next/link";
 import { AppFooter, CompactConnectButton, NavIcon } from "@/components/app-shell";
 import { useCubeAppearance } from "@/components/cube-appearance-provider";
 import { useCubeConnection, type CubeVisualState } from "@/components/cube-connection-provider";
+import { useLanguage } from "@/components/language-provider";
+import type { MessageKey } from "@/lib/i18n-messages";
 import { expandMoveNotation } from "@/lib/algorithms";
 import { type SmartCubeApi, mountSmartCube } from "@/lib/smart-cube";
 
-const HOME_NAV = [
-  { href: "/practice", label: "练习", icon: "practice", index: "01" },
-  { href: "/formulas", label: "公式", icon: "cube", index: "02" },
-  { href: "/stats", label: "统计", icon: "stats", index: "03" },
-  { href: "/settings", label: "设置", icon: "settings", index: "04" },
+const HOME_NAV: Array<{ href: string; labelKey: MessageKey; icon: string; index: string }> = [
+  { href: "/practice", labelKey: "nav.practice", icon: "practice", index: "01" },
+  { href: "/formulas", labelKey: "nav.formulas", icon: "cube", index: "02" },
+  { href: "/stats", labelKey: "nav.stats", icon: "stats", index: "03" },
+  { href: "/settings", labelKey: "nav.settings", icon: "settings", index: "04" },
 ];
 
 export function HomeLandingApp() {
+  const { t } = useLanguage();
   const cubeMountRef = useRef<HTMLDivElement | null>(null);
   const cubeApiRef = useRef<SmartCubeApi | null>(null);
   const visualStateRef = useRef<CubeVisualState>({ baseFacelets: null, moves: [] });
@@ -104,13 +107,13 @@ export function HomeLandingApp() {
         <section className="home-hero" aria-labelledby="home-title">
           <div className="home-copy">
             <h1 id="home-title">
-              <img className="home-banner" src="/banner.png" alt="立方" />
+              <img className="home-banner" src="/banner.png" alt={t("brand.name")} />
             </h1>
-            <nav className="home-nav topnav" aria-label="首页导航">
+            <nav className="home-nav topnav" aria-label={t("home.navigation")}>
               {HOME_NAV.map((item) => (
                 <Link key={item.href} className="navitem" href={item.href}>
                   <NavIcon name={item.icon} />
-                  <span>{item.label}</span>
+                  <span>{t(item.labelKey)}</span>
                   <small>{item.index}</small>
                 </Link>
               ))}
@@ -120,7 +123,7 @@ export function HomeLandingApp() {
             </div>
           </div>
 
-          <div className="home-cube-stage" aria-label="智能魔方实时显示">
+          <div className="home-cube-stage" aria-label={t("home.smartCube")}>
             <div className="home-cube-mount" ref={cubeMountRef} />
           </div>
         </section>

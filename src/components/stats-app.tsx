@@ -3,6 +3,7 @@
 import { Fragment, useEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from "react";
 import { createPortal } from "react-dom";
 import { AppFooter, AppTopbar } from "@/components/app-shell";
+import { useLanguage } from "@/components/language-provider";
 import {
   loadAverageTimeSettings,
   type AverageTimeSettings,
@@ -571,6 +572,7 @@ function summarizeDailyLevels(dailyLevels: DailyLevelEntry[], todayLocalDate: st
 }
 
 export function StatsApp() {
+  const { t } = useLanguage();
   const [history, setHistory] = useState<SolveHistoryEntry[]>(loadSolveHistory);
   const [dailyLevels, setDailyLevels] = useState<DailyLevelEntry[]>(loadDailyLevels);
   const [dailyPractice, setDailyPractice] = useState<DailyPracticeEntry[]>(loadDailyPracticeSecondsWithPendingSession);
@@ -632,13 +634,13 @@ export function StatsApp() {
   const stableScoreMeta = useMemo(() => formatStableScoreMeta(averageSettings), [averageSettings]);
   const trendRangeOptions = useMemo(
     () => [
-      { key: "all" as const, label: "显示全部" },
+      { key: "all" as const, label: t("显示全部") },
       ...TREND_RANGE_LIMITS.filter((range) => history.length >= range.count).map((range) => ({
         key: range.key,
         label: range.label,
       })),
     ],
-    [history.length],
+    [history.length, t],
   );
 
   useEffect(() => {
@@ -753,10 +755,10 @@ export function StatsApp() {
       const month = col[0]?.date.getMonth();
       const prevMonth = index > 0 ? grid[index - 1]?.[0]?.date.getMonth() : null;
       if (month == null || (index > 0 && month === prevMonth)) return "";
-      return `${month + 1}月`;
+      return t(`${month + 1}月`);
     });
     return { activeDays, grid, monthLabels, today, todayPracticeSeconds, total, totalPracticeSeconds };
-  }, [dailyPractice, history]);
+  }, [dailyPractice, history, t]);
 
   const cfopBreakdown = useMemo(() => {
     const allEntries = history.filter((entry) => entry.cfop && Object.values(entry.cfop).some((value) => typeof value === "number"));
@@ -1008,9 +1010,9 @@ export function StatsApp() {
 
     const hasTrendPoints = points.some((value) => value != null);
     const trendPhaseName = TREND_PHASE_FILTER_NAMES[trendPhaseFilter];
-    const trendMetricName = trendMetric === "moves" ? "步数" : "用时";
-    const trendSubjectName = trendPhaseFilter === "all" ? trendMetricName : `${trendPhaseName}阶段${trendMetricName}`;
-    if (!hasTrendPoints) return <div className="chart-empty">{trendPhaseFilter === "all" ? (trendMetric === "moves" ? "暂无步数数据" : "无数据") : `暂无${trendSubjectName}数据`}</div>;
+    const trendMetricName = trendMetric === "moves" ? t("步数") : t("用时");
+    const trendSubjectName = trendPhaseFilter === "all" ? trendMetricName : t(`${trendPhaseName}阶段${trendMetricName}`);
+    if (!hasTrendPoints) return <div className="chart-empty">{trendPhaseFilter === "all" ? (trendMetric === "moves" ? t("暂无步数数据") : t("无数据")) : t(`暂无${trendSubjectName}数据`)}</div>;
     const plotWidth = width - padLeft - padRight;
     const x = (index: number) => padLeft + plotWidth * (points.length === 1 ? 0.5 : index / (points.length - 1));
     const y = (value: number | null) => {
@@ -1046,7 +1048,7 @@ export function StatsApp() {
         viewBox={`0 0 ${width} ${height}`}
         className="trend-svg"
         role="img"
-        aria-label={`${trendSubjectName}趋势图`}
+        aria-label={t(`${trendSubjectName}趋势图`)}
         onPointerMove={handleTrendPointerMove}
         onPointerLeave={clearTrendPoint}
         onMouseLeave={clearTrendPoint}
@@ -1144,8 +1146,8 @@ export function StatsApp() {
               textAnchor="middle"
             >
               {trendMetric === "moves"
-                ? `成绩走势 ${guideStableScore == null ? "--" : fmtTrendValue(guideStableScore, trendMetric)}`
-                : `成绩走势 ${guideStableScore == null ? "--" : fmtShort(guideStableScore)}`}
+                ? t(`成绩走势 ${guideStableScore == null ? "--" : fmtTrendValue(guideStableScore, trendMetric)}`)
+                : t(`成绩走势 ${guideStableScore == null ? "--" : fmtShort(guideStableScore)}`)}
             </text>
           </>
         )}
@@ -1174,7 +1176,7 @@ export function StatsApp() {
                 cy={y(value)}
                 r="9"
                 tabIndex={0}
-                aria-label={`第 ${index + 1} 次${trendSubjectName} ${fmtTrendValue(value, trendMetric)}`}
+                aria-label={t(`第 ${index + 1} 次${trendSubjectName} ${fmtTrendValue(value, trendMetric)}`)}
                 onBlur={() => setTrendCfopTip(null)}
                 onPointerEnter={(event) => {
                   event.stopPropagation();
@@ -1198,7 +1200,7 @@ export function StatsApp() {
     const W = 520, H = 262;
     const padX = 10, padTop = 10, padBot = 10;
     const { entries, points, min, max } = dailyLevelTrend;
-    if (points.length === 0) return <div className="chart-empty">暂无每日测试数据</div>;
+    if (points.length === 0) return <div className="chart-empty">{t("暂无每日测试数据")}</div>;
     const range = Math.max(1, max - min);
     const chartW = W - padX * 2;
     const chartH = H - padTop - padBot;
@@ -1241,7 +1243,7 @@ export function StatsApp() {
         viewBox={`0 0 ${W} ${H}`}
         className="daily-level-svg"
         role="img"
-        aria-label="每日能力水平变化趋势"
+        aria-label={t("每日能力水平变化趋势")}
         onPointerMove={handleDlPointerMove}
         onPointerLeave={() => setDailyLevelTip(null)}
         onMouseLeave={() => setDailyLevelTip(null)}
@@ -1346,7 +1348,7 @@ export function StatsApp() {
           aria-label={label}
           onClick={() => setOpenTrendDropdown((current) => (current === id ? null : id))}
         >
-          <span>{activeOption.label}</span>
+          <span>{t(activeOption.label)}</span>
           <i aria-hidden="true"></i>
         </button>
         <div className="trend-dropdown-menu" role="menu" aria-label={label}>
@@ -1362,7 +1364,7 @@ export function StatsApp() {
                 clearTrendHover();
               }}
             >
-              {option.label}
+              {t(option.label)}
             </button>
           ))}
         </div>
@@ -1378,29 +1380,29 @@ export function StatsApp() {
         <section className="st-activity-row">
           <div className="st-records st-records-compact">
             <div className="st-rec st-rec-pb">
-              <div className="strr-l">最佳 · PB</div>
+              <div className="strr-l">{t("最佳 · PB")}</div>
               <div className="strr-v">{fmtStatsTime(records.pb)}</div>
-              <div className="strr-meta">{records.count} 次记录</div>
+              <div className="strr-meta">{records.count}{" "}{t("次记录")}</div>
             </div>
             <div className="st-rec st-rec-ao">
-              <div className="strr-l">平均用时 · AVG</div>
+              <div className="strr-l">{t("平均用时 · AVG")}</div>
               <div className="st-ao-grid">
                 <div className="st-ao-item">
                   <div className="st-ao-key">AO5</div>
                   <div className="st-ao-value">{fmtStatsTime(records.ao5)}</div>
-                  <div className="st-ao-meta">最近 5 次去掉首尾</div>
+                  <div className="st-ao-meta">{t("最近 5 次去掉首尾")}</div>
                 </div>
                 <div className="st-ao-divider" aria-hidden="true" />
                 <div className="st-ao-item">
-                  <div className="st-ao-key">稳定成绩</div>
+                  <div className="st-ao-key">{t("稳定成绩")}</div>
                   <div className="st-ao-value">{fmtStatsTime(records.stableScore)}</div>
-                  <div className="st-ao-meta">{stableScoreMeta}</div>
+                  <div className="st-ao-meta">{t(stableScoreMeta)}</div>
                 </div>
                 <div className="st-ao-divider" aria-hidden="true" />
                 <div className="st-ao-item">
                   <div className="st-ao-key">AO100</div>
                   <div className="st-ao-value">{fmtStatsTime(records.ao100)}</div>
-                  <div className="st-ao-meta">最近 100 次去掉 10 次</div>
+                  <div className="st-ao-meta">{t("最近 100 次去掉 10 次")}</div>
                 </div>
               </div>
             </div>
@@ -1413,23 +1415,23 @@ export function StatsApp() {
             <div className="st-card-head">
               <div>
                 <div className="st-ch-kicker">— DAILY LEVEL</div>
-                <div className="st-ch-title">每日能力水平</div>
+                <div className="st-ch-title">{t("每日能力水平")}</div>
               </div>
               <div className="st-legend">
-                <span>{dailyLevels.length ? `${dailyLevels.length} 天测试` : "暂无测试数据"}</span>
+                <span>{dailyLevels.length ? t(`${dailyLevels.length} 天测试`) : t("暂无测试数据")}</span>
               </div>
             </div>
             {dailyLevels.length === 0 ? (
-              <div className="chart-empty">在练习页完成每日水平测试后，这里会显示五次复原的平均水平。</div>
+              <div className="chart-empty">{t("在练习页完成每日水平测试后，这里会显示五次复原的平均水平。")}</div>
             ) : (
               <div className="daily-level-board">
                 <div className="dl-main">
-                  <span>{todayDailyLevel ? "今日水平" : "今日未测试"}</span>
+                  <span>{todayDailyLevel ? t("今日水平") : t("今日未测试")}</span>
                   <b>{fmtStatsTime(todayDailyLevel?.averageMs ?? null)}</b>
-                  <em>{todayDailyLevel ? todayDailyLevel.localDate : `上次 ${dailyLevelRows[0]?.localDate ?? "—"}`}</em>
+                  <em>{todayDailyLevel ? todayDailyLevel.localDate : t(`上次 ${dailyLevelRows[0]?.localDate ?? "—"}`)}</em>
                 </div>
                 <div className="dl-main dl-main-secondary">
-                  <span>历史最佳水平</span>
+                  <span>{t("历史最佳水平")}</span>
                   <b>{fmtStatsTime(bestDailyLevel)}</b>
                   <em>{bestDailyLevelEntry?.localDate ?? "—"}</em>
                 </div>
@@ -1464,7 +1466,7 @@ export function StatsApp() {
               >
                 <div className="dl-tip-head">
                   <span>{dailyLevelTip.entry.localDate}</span>
-                  <em>每日测试</em>
+                  <em>{t("每日测试")}</em>
                 </div>
                 <div className="dl-tip-solves">
                   {(() => {
@@ -1497,28 +1499,28 @@ export function StatsApp() {
             <div className="st-card-head">
               <div>
                 <div className="st-ch-kicker">— ACTIVITY</div>
-                <div className="st-ch-title">练习热力图 · 最近 16 周</div>
+                <div className="st-ch-title">{t("练习热力图 · 最近 16 周")}</div>
               </div>
-              <div className="st-heat-summary" aria-label="最近 16 周练习摘要">
-                <span>活跃天数 <b>{heatmap.activeDays}</b></span>
-                <span>练习次数 <b>{heatmap.total}</b></span>
-                <span>训练总时长 <b>{fmtPracticeDuration(heatmap.totalPracticeSeconds)}</b></span>
+              <div className="st-heat-summary" aria-label={t("最近 16 周练习摘要")}>
+                <span>{t("活跃天数")}{" "}<b>{heatmap.activeDays}</b></span>
+                <span>{t("练习次数")}{" "}<b>{heatmap.total}</b></span>
+                <span>{t("训练总时长")}{" "}<b>{t(fmtPracticeDuration(heatmap.totalPracticeSeconds))}</b></span>
               </div>
             </div>
             <div className="hm-panel">
               <div className="hm-panel-top">
                 <div className="hm-focus">
-                  <span className="hm-focus-k">今日</span>
+                  <span className="hm-focus-k">{t("今日")}</span>
                   <span className="hm-focus-v">
-                    {heatmap.today.getMonth() + 1}/{heatmap.today.getDate()} · {fmtPracticeMinutesCompact(heatmap.todayPracticeSeconds)}
+                    {heatmap.today.getMonth() + 1}/{heatmap.today.getDate()} · {t(fmtPracticeMinutesCompact(heatmap.todayPracticeSeconds))}
                   </span>
                 </div>
-                <div className="st-legend hm-legend" aria-label="热力图颜色图例">
-                  <span>少</span>
+                <div className="st-legend hm-legend" aria-label={t("热力图颜色图例")}>
+                  <span>{t("少")}</span>
                   {[0, 1, 2, 3, 4].map((level) => (
                     <span key={level} className="hm-cell" data-level={level}></span>
                   ))}
-                  <span>多</span>
+                  <span>{t("多")}</span>
                 </div>
               </div>
               <div className="hm-scroll">
@@ -1530,9 +1532,9 @@ export function StatsApp() {
                     ))}
                   </div>
                 </div>
-                <div className="hm-grid" role="img" aria-label="最近 16 周每天练习热力图">
+                <div className="hm-grid" role="img" aria-label={t("最近 16 周每天练习热力图")}>
                   <div className="hm-day-labels">
-                    {["一", "二", "三", "四", "五", "六", "日"].map((day) => (
+                    {[t("一"), t("二"), t("三"), t("四"), t("五"), t("六"), t("日")].map((day) => (
                       <div key={day} className="hm-dl">{day}</div>
                     ))}
                   </div>
@@ -1548,8 +1550,8 @@ export function StatsApp() {
                               className={`hm-cell${cell.isFuture ? " hm-cell-future" : ""}`}
                               data-level={level}
                               aria-label={cell.isFuture
-                                ? `${cell.date.getMonth() + 1}月${cell.date.getDate()}日，未来日期`
-                                : `${cell.date.getMonth() + 1}月${cell.date.getDate()}日，${cell.count} 次练习`}
+                                ? t(`${cell.date.getMonth() + 1}月${cell.date.getDate()}日，未来日期`)
+                                : t(`${cell.date.getMonth() + 1}月${cell.date.getDate()}日，${cell.count} 次练习`)}
                               onPointerEnter={cell.isFuture ? undefined : (event) => showHeatmapTip(cell, event)}
                               onPointerMove={cell.isFuture ? undefined : (event) => showHeatmapTip(cell, event)}
                               onPointerLeave={() => setHeatmapTip(null)}
@@ -1567,9 +1569,9 @@ export function StatsApp() {
             <div className="stats-heatmap-tip" role="tooltip" style={{ left: heatmapTip.left, top: heatmapTip.top }}>
               <span>{heatmapTip.dateLabel}</span>
               <b>{heatmapTip.count}</b>
-              <em>{heatmapTip.count > 0 ? "次练习" : "暂无练习"}</em>
+              <em>{heatmapTip.count > 0 ? t("次练习") : t("暂无练习")}</em>
               {heatmapTip.practiceSeconds != null ? (
-                <small className="hm-tip-duration">练习时长 {fmtPracticeMinutes(heatmapTip.practiceSeconds)}</small>
+                <small className="hm-tip-duration">{t("练习时长")}{" "}{t(fmtPracticeMinutes(heatmapTip.practiceSeconds))}</small>
               ) : null}
             </div>
           ), document.body)}
@@ -1584,29 +1586,29 @@ export function StatsApp() {
             <div className="st-card-head">
               <div>
                 <div className="st-ch-kicker">— TREND</div>
-                <div className="st-ch-title">成绩趋势</div>
+                <div className="st-ch-title">{t("成绩趋势")}</div>
               </div>
               <div className="st-legend">
-                <span><span className="lg-dot" style={{ background: "#0E0E0C" }}></span>单次</span>
-                <span><span className="lg-dot" style={{ background: "#1F4FB6" }}></span>成绩走势</span>
+                <span><span className="lg-dot" style={{ background: "#0E0E0C" }}></span>{t("单次")}</span>
+                <span><span className="lg-dot" style={{ background: "#1F4FB6" }}></span>{t("成绩走势")}</span>
                 {showTrendPb && <span><span className="lg-dot" style={{ background: "#C9352A" }}></span>PB</span>}
                 <TrendDropdown
                   id="range"
-                  label="成绩趋势显示范围"
+                  label={t("成绩趋势显示范围")}
                   value={trendRange}
                   options={trendRangeOptions}
                   onSelect={setTrendRange}
                 />
                 <TrendDropdown
                   id="metric"
-                  label="成绩趋势数据类型"
+                  label={t("成绩趋势数据类型")}
                   value={trendMetric}
                   options={TREND_METRIC_FILTERS}
                   onSelect={setTrendMetric}
                 />
                 <TrendDropdown
                   id="phase"
-                  label="成绩趋势阶段"
+                  label={t("成绩趋势阶段")}
                   value={trendPhaseFilter}
                   options={TREND_PHASE_FILTERS.map((phase) => ({
                     key: phase.key,
@@ -1639,7 +1641,7 @@ export function StatsApp() {
                       <em>{formatPhaseMoveDelta(trendCfopTip.entry.cfopMoves, phase.key)}</em>
                     </div>
                     {phase.key === "f2l" && (
-                      <div className="hcf-f2l-subline" aria-label="F2L 子阶段用时和步数">
+                      <div className="hcf-f2l-subline" aria-label={t("F2L 子阶段用时和步数")}>
                         {F2L_SUBPHASES.map((subphase, index) => (
                           <span key={subphase.key}>
                             <strong>{index + 1}/4</strong>
@@ -1652,9 +1654,9 @@ export function StatsApp() {
                   </Fragment>
                 ))}
                 <div className="hcf-row hcf-total">
-                  <span>总计</span>
+                  <span>{t("总计")}</span>
                   <b>{fmtShort(trendCfopTip.entry.ms)}</b>
-                  <em>{trendCfopTip.entry.moves == null ? MISSING_HISTORY_VALUE : `${trendCfopTip.entry.moves}步`}</em>
+                  <em>{trendCfopTip.entry.moves == null ? MISSING_HISTORY_VALUE : t(`${trendCfopTip.entry.moves}步`)}</em>
                 </div>
               </div>
             ), document.body)}
@@ -1664,14 +1666,14 @@ export function StatsApp() {
             <div className="st-card-head">
               <div>
                 <div className="st-ch-kicker">— BREAKDOWN</div>
-                <div className="st-ch-title">CFOP 阶段耗时</div>
+                <div className="st-ch-title">{t("CFOP 阶段耗时")}</div>
               </div>
               {activeCfopBreakdown.mode === "single" && trendCfopTip ? (
-                <div className="cfop-point-badge" aria-label={`当前练习编号 ${trendCfopTip.pointNumber}`}>
+                <div className="cfop-point-badge" aria-label={t(`当前练习编号 ${trendCfopTip.pointNumber}`)}>
                   #{String(trendCfopTip.pointNumber).padStart(3, "0")}
                 </div>
               ) : (
-                <div className="cfop-average-switch" aria-label="CFOP 平均样本">
+                <div className="cfop-average-switch" aria-label={t("CFOP 平均样本")}>
                   {CFOP_AVERAGE_SIZES.map((size) => (
                     <button
                       key={size}
@@ -1686,15 +1688,15 @@ export function StatsApp() {
               )}
             </div>
             {activeCfopBreakdown.mode === "average" && activeCfopBreakdown.count < activeCfopBreakdown.target ? (
-              <div className="chart-empty">需要 {activeCfopBreakdown.target} 次 CFOP 阶段数据后显示 AO{activeCfopBreakdown.target}。</div>
+              <div className="chart-empty">{t("需要")}{" "}{activeCfopBreakdown.target}{" "}{t("次 CFOP 阶段数据后显示 AO")}{activeCfopBreakdown.target}。</div>
             ) : (
               <>
                 <div className="cfop-rows">
                   {[
-                    { key: "cross", name: "Cross", en: "底层十字", color: "#F2C744", value: activeCfopBreakdown.cross },
-                    { key: "f2l", name: "F2L", en: "前两层", color: "#1F6B3A", value: activeCfopBreakdown.f2l },
-                    { key: "oll", name: "OLL", en: "顶层定向", color: "#1F4FB6", value: activeCfopBreakdown.oll },
-                    { key: "pll", name: "PLL", en: "顶层置换", color: "#C9352A", value: activeCfopBreakdown.pll },
+                    { key: "cross", name: "Cross", en: t("底层十字"), color: "#F2C744", value: activeCfopBreakdown.cross },
+                    { key: "f2l", name: "F2L", en: t("前两层"), color: "#1F6B3A", value: activeCfopBreakdown.f2l },
+                    { key: "oll", name: "OLL", en: t("顶层定向"), color: "#1F4FB6", value: activeCfopBreakdown.oll },
+                    { key: "pll", name: "PLL", en: t("顶层置换"), color: "#C9352A", value: activeCfopBreakdown.pll },
                   ].map((phase) => (
                     <div key={phase.key} className="cfop-row">
                       <div className="cfr-l">

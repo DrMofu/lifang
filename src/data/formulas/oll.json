@@ -57,7 +57,7 @@
         {
           "id": "oll-05-1",
           "name": "公式一",
-          "algo": "r' U2 (R U R' U) r"
+          "algo": "r' (U2 R U R' U) r"
         }
       ],
       "facelets": "XXXXUUXUUXXURRRRRRXXXFFFFFFDDDDDDDDDXUULLLLLLXUUBBBBBB"
@@ -69,7 +69,7 @@
         {
           "id": "oll-06-1",
           "name": "公式一",
-          "algo": "(r U2 R' U' R U' r')"
+          "algo": "r (U2 R' U' R U') r'"
         }
       ],
       "facelets": "XUUXUUXXXUXXRRRRRRUUXFFFFFFDDDDDDDDDUUXLLLLLLXXXBBBBBB"

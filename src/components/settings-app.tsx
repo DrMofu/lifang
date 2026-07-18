@@ -5,6 +5,8 @@ import { useAuth } from "@/components/auth-provider";
 import { AppFooter, AppTopbar } from "@/components/app-shell";
 import { CubeColorLegend } from "@/components/cube-color-legend";
 import { useCubeAppearance } from "@/components/cube-appearance-provider";
+import { useLanguage } from "@/components/language-provider";
+import type { MessageKey } from "@/lib/i18n-messages";
 import {
   COLOR_LABEL,
   COLOR_LIST,
@@ -104,11 +106,11 @@ const CONSOLE_LOGGING_OPTIONS: Array<{
   { key: "logDisconnect", label: "DISCONNECT", hint: "蓝牙断开事件" },
 ];
 
-const RENDER_FPS_OPTIONS: Array<{ value: CubeRenderMaxFps; label: string }> = [
-  { value: null, label: "无限制" },
-  { value: 120, label: "120 帧" },
-  { value: 60, label: "60 帧" },
-  { value: 30, label: "30 帧" },
+const RENDER_FPS_OPTIONS: Array<{ value: CubeRenderMaxFps; labelKey: MessageKey }> = [
+  { value: null, labelKey: "settings.fps.unlimited" },
+  { value: 120, labelKey: "settings.fps.120" },
+  { value: 60, labelKey: "settings.fps.60" },
+  { value: 30, labelKey: "settings.fps.30" },
 ];
 
 const CLOUD_SNAPSHOT_AUTO_REFRESH_TTL_MS = 5 * 60 * 1000;
@@ -137,6 +139,7 @@ function rememberCloudSnapshotMetadata(userId: string, metadata: CloudSnapshotMe
 }
 
 export function SettingsApp() {
+  const { locale, setLocale, t } = useLanguage();
   const { configured: authConfigured, loading: authLoading, user, supabase } = useAuth();
   const {
     orientation,
@@ -252,7 +255,7 @@ export function SettingsApp() {
         setCloudSnapshotMetadata(metadata);
       })
       .catch(() => {
-        if (!cancelled) flashStatus("error", "读取云端数据失败，请检查 Supabase 表和 RLS 配置。");
+        if (!cancelled) flashStatus("error", t("读取云端数据失败，请检查 Supabase 表和 RLS 配置。"));
       })
       .finally(() => {
         if (!cancelled) setCloudLoading(false);
@@ -261,7 +264,7 @@ export function SettingsApp() {
     return () => {
       cancelled = true;
     };
-  }, [supabase, user]);
+  }, [supabase, user, t]);
 
   function flashStatus(kind: StatusKind, text: string) {
     setStatusMessage({ kind, text });
@@ -349,10 +352,10 @@ export function SettingsApp() {
       });
       if (error) throw error;
       setAuthCodeSent(true);
-      flashStatus("success", "验证码已发送，请查看邮箱。");
+      flashStatus("success", t("验证码已发送，请查看邮箱。"));
     } catch (error) {
-      const message = error instanceof Error ? error.message : "请稍后重试。";
-      flashStatus("error", `发送验证码失败：${message}`);
+      const message = error instanceof Error ? error.message : t("请稍后重试。");
+      flashStatus("error", t(`发送验证码失败：${message}`));
     } finally {
       setAuthActionPending(false);
     }
@@ -372,9 +375,9 @@ export function SettingsApp() {
       if (error) throw error;
       setAuthCode("");
       setAuthCodeSent(false);
-      flashStatus("success", "已登录，可以同步云端数据。");
+      flashStatus("success", t("已登录，可以同步云端数据。"));
     } catch {
-      flashStatus("error", "验证码无效或已过期。");
+      flashStatus("error", t("验证码无效或已过期。"));
     } finally {
       setAuthActionPending(false);
     }
@@ -386,9 +389,9 @@ export function SettingsApp() {
     try {
       await supabase.auth.signOut();
       setCloudSnapshotMetadata(null);
-      flashStatus("success", "已退出登录，本地数据仍保留。");
+      flashStatus("success", t("已退出登录，本地数据仍保留。"));
     } catch {
-      flashStatus("error", "退出失败，请稍后重试。");
+      flashStatus("error", t("退出失败，请稍后重试。"));
     } finally {
       setAuthActionPending(false);
     }
@@ -401,9 +404,9 @@ export function SettingsApp() {
       const metadata = await loadCloudSnapshotMetadata(supabase);
       rememberCloudSnapshotMetadata(user.id, metadata);
       setCloudSnapshotMetadata(metadata);
-      flashStatus("success", "已刷新云端状态。");
+      flashStatus("success", t("已刷新云端状态。"));
     } catch {
-      flashStatus("error", "读取云端数据失败。");
+      flashStatus("error", t("读取云端数据失败。"));
     } finally {
       setCloudLoading(false);
     }
@@ -414,7 +417,7 @@ export function SettingsApp() {
     const currentPayload = buildCurrentUserDataPayload();
     const localTimestamp = getLocalPackageTimestamp(currentPayload) ?? new Date().toISOString();
     if (cloudSnapshotMetadata && isNewerTimestamp(getCloudSnapshotTimestamp(cloudSnapshotMetadata), localTimestamp)) {
-      const confirmed = window.confirm("云端数据包更新时间晚于本地。继续上传会覆盖较新的云端数据。是否继续？");
+      const confirmed = window.confirm(t("云端数据包更新时间晚于本地。继续上传会覆盖较新的云端数据。是否继续？"));
       if (!confirmed) return;
     }
 
@@ -426,9 +429,9 @@ export function SettingsApp() {
       const metadata = await loadCloudSnapshotMetadata(supabase);
       rememberCloudSnapshotMetadata(user.id, metadata);
       setCloudSnapshotMetadata(metadata);
-      flashStatus("success", "已上传当前存档到云端。");
+      flashStatus("success", t("已上传当前存档到云端。"));
     } catch {
-      flashStatus("error", "上传失败，请检查网络和 Supabase 配置。");
+      flashStatus("error", t("上传失败，请检查网络和 Supabase 配置。"));
     } finally {
       setCloudActionPending(false);
     }
@@ -442,7 +445,7 @@ export function SettingsApp() {
       if (!snapshot) {
         rememberCloudSnapshotMetadata(user.id, null);
         setCloudSnapshotMetadata(null);
-        flashStatus("info", "云端还没有可恢复的数据。");
+        flashStatus("info", t("云端还没有可恢复的数据。"));
         return;
       }
       const metadata: CloudSnapshotMetadata = {
@@ -454,22 +457,22 @@ export function SettingsApp() {
       setCloudSnapshotMetadata(metadata);
       const imported = parseUserDataImport(snapshot.payload);
       if (!imported) {
-        flashStatus("error", "云端数据格式异常，未覆盖本地数据。");
+        flashStatus("error", t("云端数据格式异常，未覆盖本地数据。"));
         return;
       }
       const cloudTimestamp = getCloudSnapshotTimestamp(snapshot);
       const localPayload = buildCurrentUserDataPayload();
       const localTimestamp = getLocalPackageTimestamp(localPayload);
       const confirmMessage = isNewerTimestamp(localTimestamp, cloudTimestamp)
-        ? "本地数据包更新时间晚于云端。继续恢复会覆盖较新的本地数据。是否继续？"
-        : `将以云端数据覆盖${activeArchiveName}中的练习数据、公式数据和设置偏好。是否继续？`;
+        ? t("本地数据包更新时间晚于云端。继续恢复会覆盖较新的本地数据。是否继续？")
+        : t(`将以云端数据覆盖${activeArchiveName}中的练习数据、公式数据和设置偏好。是否继续？`);
       const confirmed = window.confirm(confirmMessage);
       if (!confirmed) return;
       applyImportedUserData(imported);
       touchLocalUserDataPackageUpdatedAt(cloudTimestamp ?? getPayloadTimestamp(snapshot.payload) ?? new Date());
-      flashStatus("success", `已从云端恢复到${activeArchiveName}。`);
+      flashStatus("success", t(`已从云端恢复到${activeArchiveName}。`));
     } catch {
-      flashStatus("error", "恢复失败，请稍后重试。");
+      flashStatus("error", t("恢复失败，请稍后重试。"));
     } finally {
       setCloudActionPending(false);
     }
@@ -488,7 +491,7 @@ export function SettingsApp() {
     link.click();
     link.remove();
     URL.revokeObjectURL(url);
-    flashStatus("success", `已导出${activeArchiveName}的用户数据包。`);
+    flashStatus("success", t(`已导出${activeArchiveName}的用户数据包。`));
   }
 
   function triggerImport() {
@@ -503,7 +506,7 @@ export function SettingsApp() {
     setDailyLevels(loadDailyLevels());
     setDailyPractice(loadDailyPracticeSeconds());
     setHasFormulaData(hasFormulaExportData(readFormulaExportData()));
-    flashStatus("info", `已切换到${nextArchive.name}。`);
+    flashStatus("info", t(`已切换到${nextArchive.name}。`));
   }
 
   function handleCreateArchive() {
@@ -514,16 +517,16 @@ export function SettingsApp() {
     setDailyLevels(loadDailyLevels());
     setDailyPractice(loadDailyPracticeSeconds());
     setHasFormulaData(hasFormulaExportData(readFormulaExportData()));
-    flashStatus("success", `已创建并切换到${archive.name}。`);
+    flashStatus("success", t(`已创建并切换到${archive.name}。`));
   }
 
   function handleRenameArchive() {
-    const nextName = window.prompt("输入新的存档名称", activeArchiveName)?.trim();
+    const nextName = window.prompt(t("输入新的存档名称"), activeArchiveName)?.trim();
     if (!nextName || nextName === activeArchiveName) return;
     const archive = renameStatisticsArchive(activeArchiveId, nextName);
     setActiveStatisticsArchiveState(archive);
     setStatisticsArchives(loadStatisticsArchives());
-    flashStatus("success", `已重命名为${archive.name}。`);
+    flashStatus("success", t(`已重命名为${archive.name}。`));
   }
 
   async function handleImportFile(event: React.ChangeEvent<HTMLInputElement>) {
@@ -535,30 +538,30 @@ export function SettingsApp() {
       const parsed = JSON.parse(text);
       const imported = parseUserDataImport(parsed);
       if (!imported) {
-        flashStatus("error", "文件格式不对，应为 v3 用户数据导出 JSON。");
+        flashStatus("error", t("文件格式不对，应为 v3 用户数据导出 JSON。"));
         return;
       }
       const importedHasFormulaData = hasFormulaExportData(imported.formulas);
       if (imported.history.length === 0 && imported.dailyLevels.length === 0 && imported.dailyPractice.length === 0 && !importedHasFormulaData) {
-        flashStatus("error", "文件中没有可识别的记录。");
+        flashStatus("error", t("文件中没有可识别的记录。"));
         return;
       }
       const confirmed = window.confirm(
-        `将以文件中的用户数据覆盖${activeArchiveName}中的练习数据、公式数据和设置偏好。是否继续？`,
+        t(`将以文件中的用户数据覆盖${activeArchiveName}中的练习数据、公式数据和设置偏好。是否继续？`),
       );
       if (!confirmed) return;
       applyImportedUserData(imported);
       touchLocalUserDataPackageUpdatedAt(getPayloadTimestamp(parsed as UserDataExportPayload) ?? new Date());
-      flashStatus("success", `已导入用户数据包到${activeArchiveName}。`);
+      flashStatus("success", t(`已导入用户数据包到${activeArchiveName}。`));
     } catch {
-      flashStatus("error", "解析失败：不是有效的 JSON 文件。");
+      flashStatus("error", t("解析失败：不是有效的 JSON 文件。"));
     }
   }
 
   function clearLocalStatisticsData() {
     if (history.length === 0 && dailyLevels.length === 0 && dailyPractice.length === 0) return;
     const confirmed = window.confirm(
-      `确定要清空${activeArchiveName}的 ${history.length} 条复原记录、${dailyLevels.length} 天水平测试和 ${dailyPractice.length} 天练习时长？此操作无法撤销。`,
+      t(`确定要清空${activeArchiveName}的 ${history.length} 条复原记录、${dailyLevels.length} 天水平测试和 ${dailyPractice.length} 天练习时长？此操作无法撤销。`),
     );
     if (!confirmed) return;
     saveSolveHistory([]);
@@ -568,12 +571,12 @@ export function SettingsApp() {
     setDailyLevels([]);
     setDailyPractice([]);
     touchLocalUserDataPackageUpdatedAt();
-    flashStatus("success", `已清空${activeArchiveName}的统计数据。`);
+    flashStatus("success", t(`已清空${activeArchiveName}的统计数据。`));
   }
 
   function deleteCurrentStatisticsArchive() {
     if (activeArchiveId === DEFAULT_STATISTICS_ARCHIVE_ID) return;
-    const confirmed = window.confirm(`确定要删除${activeArchiveName}？此操作会删除该存档内的统计数据，无法撤销。`);
+    const confirmed = window.confirm(t(`确定要删除${activeArchiveName}？此操作会删除该存档内的统计数据，无法撤销。`));
     if (!confirmed) return;
     const nextArchive = deleteStatisticsArchive(activeArchiveId);
     setActiveStatisticsArchiveState(nextArchive);
@@ -582,7 +585,7 @@ export function SettingsApp() {
     setDailyLevels(loadDailyLevels());
     setDailyPractice(loadDailyPracticeSeconds());
     setHasFormulaData(hasFormulaExportData(readFormulaExportData()));
-    flashStatus("success", `已删除${activeArchiveName}，并切换到${nextArchive.name}。`);
+    flashStatus("success", t(`已删除${activeArchiveName}，并切换到${nextArchive.name}。`));
   }
 
   function handleArchiveDangerAction() {
@@ -651,24 +654,24 @@ export function SettingsApp() {
     if (removed > 0) {
       touchLocalUserDataPackageUpdatedAt();
       emitArchiveDataChange();
-      flashStatus("success", `已清理 ${removed} 条弃用公式数据。`);
+      flashStatus("success", t(`已清理 ${removed} 条弃用公式数据。`));
       return;
     }
-    flashStatus("info", "没有发现需要清理的弃用公式数据。");
+    flashStatus("info", t("没有发现需要清理的弃用公式数据。"));
   }
 
-  const activeArchiveName = activeStatisticsArchive?.name ?? "默认存档";
+  const activeArchiveName = t(activeStatisticsArchive?.name ?? "默认存档");
   const activeArchiveId = activeStatisticsArchive?.id ?? "default";
   const userEmail = user?.email ?? "";
   const cloudUpdatedLabel = cloudLoading
-    ? "读取中"
+    ? t("读取中")
     : cloudSnapshotMetadata
-      ? new Date(getCloudSnapshotTimestamp(cloudSnapshotMetadata) ?? cloudSnapshotMetadata.updatedAt).toLocaleString("zh-CN", { hour12: false })
-      : "暂无云端数据";
+      ? new Date(getCloudSnapshotTimestamp(cloudSnapshotMetadata) ?? cloudSnapshotMetadata.updatedAt).toLocaleString(locale === "zh" ? "zh-CN" : "en-US", { hour12: false })
+      : t("暂无云端数据");
   const localUpdatedAt = getLocalUserDataPackageUpdatedAt();
   const localUpdatedLabel = localUpdatedAt
-    ? new Date(localUpdatedAt).toLocaleString("zh-CN", { hour12: false })
-    : "尚未记录";
+    ? new Date(localUpdatedAt).toLocaleString(locale === "zh" ? "zh-CN" : "en-US", { hour12: false })
+    : t("尚未记录");
   const cloudBusy = cloudLoading || cloudActionPending || authLoading;
   return (
     <div className="app lf-stats-app lf-settings-app">
@@ -679,14 +682,14 @@ export function SettingsApp() {
           <div className="settings-card-head">
             <div>
               <div className="st-ch-kicker">— APPEARANCE</div>
-              <div className="st-ch-title">魔方显示</div>
+              <div className="st-ch-title">{t("settings.display.title")}</div>
             </div>
-            <CubeColorLegend faceColors={faceColors} className="settings-color-legend" aria-label="色彩对照" />
+            <CubeColorLegend faceColors={faceColors} className="settings-color-legend" aria-label={t("settings.colorLegend")} />
           </div>
           <div className="settings-card-body settings-card-body-appearance">
             <div className="settings-controls">
               <div className="settings-row">
-                <div className="settings-row-label">色彩配色</div>
+                <div className="settings-row-label">{t("settings.colorPalette")}</div>
                 <PaletteSelectField
                   id="settings-color-palette"
                   selected={colorPaletteId}
@@ -695,7 +698,7 @@ export function SettingsApp() {
               </div>
               <div className="settings-color-select-grid">
                 <div className="settings-row">
-                  <div className="settings-row-label">顶面 · U</div>
+                  <div className="settings-row-label">{t("settings.topFace")}</div>
                   <ColorSelectField
                     id="settings-top-color"
                     selected={orientation.top}
@@ -704,7 +707,7 @@ export function SettingsApp() {
                   />
                 </div>
                 <div className="settings-row">
-                  <div className="settings-row-label">前面 · F</div>
+                  <div className="settings-row-label">{t("settings.frontFace")}</div>
                   <ColorSelectField
                     id="settings-front-color"
                     selected={orientation.front}
@@ -721,10 +724,10 @@ export function SettingsApp() {
                     checked={backFaceProjectionEnabled}
                     onChange={(event) => setBackFaceProjectionEnabled(event.target.checked)}
                   />
-                  <span>背面投影</span>
+                  <span>{t("settings.backProjection")}</span>
                 </label>
                 <label className="settings-projection-distance">
-                  <b>投影距离</b>
+                  <b>{t("settings.projectionDistance")}</b>
                   <input
                     type="range"
                     min={MIN_BACK_FACE_PROJECTION_DISTANCE}
@@ -732,7 +735,7 @@ export function SettingsApp() {
                     step="0.05"
                     value={backFaceProjectionDistance}
                     disabled={!backFaceProjectionEnabled}
-                    aria-label="背面投影距离"
+                    aria-label={t("settings.backProjectionDistance")}
                     onInput={(event) => setBackFaceProjectionDistance(Number(event.currentTarget.value))}
                     onChange={(event) => setBackFaceProjectionDistance(Number(event.target.value))}
                   />
@@ -743,7 +746,7 @@ export function SettingsApp() {
             <div className="settings-preview">
               <div className="cube-mount" ref={cubeMountRef}></div>
               <button type="button" className="settings-preview-tag" onClick={resetPreviewDisplayOrientation}>
-                视角归位
+                {t("settings.resetView")}
               </button>
             </div>
           </div>
@@ -753,22 +756,44 @@ export function SettingsApp() {
           <div className="settings-card-head">
             <div>
               <div className="st-ch-kicker">— SETTINGS</div>
-              <div className="st-ch-title">其他设置</div>
+              <div className="st-ch-title">{t("settings.other.title")}</div>
             </div>
           </div>
           <div className="settings-card-body settings-card-body-other">
             <div className="settings-setting-group">
               <div className="settings-inline-select-row">
-                <div className="settings-setting-title">渲染帧率</div>
-                <div className="settings-segmented settings-segmented-four settings-render-fps-segmented" aria-label="3D 帧率限制">
+                <div className="settings-setting-title">{t("settings.language.label")}</div>
+                <div className="settings-segmented settings-segmented-two" aria-label={t("settings.language.aria")}>
+                  <button
+                    type="button"
+                    className={`settings-segment${locale === "zh" ? " active" : ""}`}
+                    onClick={() => setLocale("zh")}
+                  >
+                    {t("settings.language.zh")}
+                  </button>
+                  <button
+                    type="button"
+                    className={`settings-segment${locale === "en" ? " active" : ""}`}
+                    onClick={() => setLocale("en")}
+                  >
+                    {t("settings.language.en")}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="settings-setting-group">
+              <div className="settings-inline-select-row">
+                <div className="settings-setting-title">{t("settings.renderFps")}</div>
+                <div className="settings-segmented settings-segmented-four settings-render-fps-segmented" aria-label={t("settings.renderFpsAria")}>
                   {RENDER_FPS_OPTIONS.map((option) => (
                     <button
-                      key={option.label}
+                      key={option.labelKey}
                       type="button"
                       className={`settings-segment${renderMaxFps === option.value ? " active" : ""}`}
                       onClick={() => setRenderMaxFps(option.value)}
                     >
-                      {option.label}
+                      {t(option.labelKey)}
                     </button>
                   ))}
                 </div>
@@ -777,9 +802,9 @@ export function SettingsApp() {
 
             <div className="settings-setting-group">
               <div className="settings-inline-select-row">
-                <div className="settings-setting-title">复原观察时间</div>
+                <div className="settings-setting-title">{t("settings.inspection")}</div>
                 <div className="settings-inspection-inline-controls">
-                  <div className="settings-segmented settings-segmented-two settings-inspection-mode-segmented" aria-label="观察时间模式">
+                  <div className="settings-segmented settings-segmented-two settings-inspection-mode-segmented" aria-label={t("settings.inspectionMode")}>
                     {(["unlimited", "timed"] as PracticeInspectionMode[]).map((mode) => (
                       <button
                         key={mode}
@@ -787,7 +812,7 @@ export function SettingsApp() {
                         className={`settings-segment${inspectionSettings.mode === mode ? " active" : ""}`}
                         onClick={() => handleInspectionModeChange(mode)}
                       >
-                        {mode === "unlimited" ? "无限" : "计时"}
+                        {mode === "unlimited" ? t("settings.inspectionUnlimited") : t("settings.inspectionTimed")}
                       </button>
                     ))}
                   </div>
@@ -799,7 +824,7 @@ export function SettingsApp() {
                       max={MAX_PRACTICE_INSPECTION_SECONDS}
                       value={inspectionSettings.seconds}
                       disabled={inspectionSettings.mode === "unlimited"}
-                      aria-label="观察秒数"
+                      aria-label={t("settings.inspectionSeconds")}
                       onChange={(event) => handleInspectionSecondsChange(event.target.value)}
                     />
                     <span aria-hidden="true">s</span>
@@ -810,8 +835,8 @@ export function SettingsApp() {
 
             <div className="settings-setting-group">
               <div className="settings-inline-select-row">
-                <div className="settings-setting-title">稳定成绩定义</div>
-                <div className="settings-segmented settings-average-method-segmented" aria-label="稳定时间定义">
+                <div className="settings-setting-title">{t("settings.stableDefinition")}</div>
+                <div className="settings-segmented settings-average-method-segmented" aria-label={t("settings.stableDefinitionAria")}>
                   {(Object.keys(AVERAGE_TIME_METHOD_LABELS) as AverageTimeMethod[]).map((method) => (
                     <button
                       key={method}
@@ -819,14 +844,14 @@ export function SettingsApp() {
                       className={`settings-segment${averageSettings.method === method ? " active" : ""}`}
                       onClick={() => handleAverageMethodChange(method)}
                     >
-                      {AVERAGE_TIME_METHOD_LABELS[method]}
+                      {t(AVERAGE_TIME_METHOD_LABELS[method])}
                     </button>
                   ))}
                 </div>
               </div>
               <div className="settings-number-grid">
                 <label className="settings-number-field">
-                  <span>最近次数</span>
+                  <span>{t("settings.recentCount")}</span>
                   <input
                     type="number"
                     min="1"
@@ -838,7 +863,7 @@ export function SettingsApp() {
                 {averageSettings.method === "trimmed" && (
                   <>
                     <label className="settings-number-field">
-                      <span>删除最好</span>
+                      <span>{t("settings.trimBest")}</span>
                       <input
                         type="number"
                         min="0"
@@ -848,7 +873,7 @@ export function SettingsApp() {
                       />
                     </label>
                     <label className="settings-number-field">
-                      <span>删除最坏</span>
+                      <span>{t("settings.trimWorst")}</span>
                       <input
                         type="number"
                         min="0"
@@ -868,58 +893,48 @@ export function SettingsApp() {
           <div className="settings-card-head">
             <div>
               <div className="st-ch-kicker">— CLOUD</div>
-              <div className="st-ch-title">云端同步</div>
+              <div className="st-ch-title">{t("云端同步")}</div>
             </div>
           </div>
           <div className="settings-card-body settings-card-body-cloud">
             {!authConfigured ? (
-              <div className="settings-data-note">
-                尚未配置 Supabase。添加 NEXT_PUBLIC_SUPABASE_URL 和 NEXT_PUBLIC_SUPABASE_ANON_KEY 后即可启用邮箱登录和云端同步。
-              </div>
+              <div className="settings-data-note">{t("尚未配置 Supabase。添加 NEXT_PUBLIC_SUPABASE_URL 和 NEXT_PUBLIC_SUPABASE_ANON_KEY 后即可启用邮箱登录和云端同步。")}</div>
             ) : user ? (
               <>
                 <div className="settings-cloud-account">
-                  <span>当前账号</span>
+                  <span>{t("当前账号")}</span>
                   <b title={userEmail}>{userEmail}</b>
                 </div>
                 <div className="settings-cloud-metrics">
                   <div>
-                    <span>云端更新时间</span>
+                    <span>{t("云端更新时间")}</span>
                     <b>{cloudUpdatedLabel}</b>
                   </div>
                   <div>
-                    <span>本地记录时间</span>
+                    <span>{t("本地记录时间")}</span>
                     <b>{localUpdatedLabel}</b>
                   </div>
                   <div>
-                    <span>当前存档</span>
-                    <b>{history.length} 条复原 · {dailyLevels.length} 天测试</b>
+                    <span>{t("当前存档")}</span>
+                    <b>{history.length}{" "}{t("条复原 ·")}{" "}{dailyLevels.length}{" "}{t("天测试")}</b>
                   </div>
                 </div>
                 <div className="settings-cloud-actions">
-                  <button type="button" className="settings-action" onClick={uploadToCloud} disabled={cloudBusy}>
-                    上传到云端
-                  </button>
+                  <button type="button" className="settings-action" onClick={uploadToCloud} disabled={cloudBusy}>{t("上传到云端")}</button>
                   <button
                     type="button"
                     className="settings-action"
                     onClick={downloadFromCloud}
                     disabled={cloudBusy || !cloudSnapshotMetadata}
-                  >
-                    从云端恢复
-                  </button>
-                  <button type="button" className="settings-action" onClick={refreshCloudSnapshot} disabled={cloudBusy}>
-                    刷新状态
-                  </button>
-                  <button type="button" className="settings-action settings-action-danger" onClick={signOutCloudAccount} disabled={authActionPending}>
-                    退出登录
-                  </button>
+                  >{t("从云端恢复")}</button>
+                  <button type="button" className="settings-action" onClick={refreshCloudSnapshot} disabled={cloudBusy}>{t("刷新状态")}</button>
+                  <button type="button" className="settings-action settings-action-danger" onClick={signOutCloudAccount} disabled={authActionPending}>{t("退出登录")}</button>
                 </div>
               </>
             ) : (
               <>
                 <label className="settings-auth-field">
-                  <span>邮箱</span>
+                  <span>{t("邮箱")}</span>
                   <input
                     type="email"
                     inputMode="email"
@@ -932,27 +947,25 @@ export function SettingsApp() {
                 </label>
                 {authCodeSent && (
                   <label className="settings-auth-field">
-                    <span>验证码</span>
+                    <span>{t("验证码")}</span>
                     <input
                       type="text"
                       inputMode="numeric"
                       autoComplete="one-time-code"
                       value={authCode}
                       onChange={(event) => setAuthCode(event.target.value)}
-                      placeholder="6 位验证码"
+                      placeholder={t("6 位验证码")}
                       disabled={authActionPending}
                     />
                   </label>
                 )}
                 <div className="settings-cloud-actions">
                   <button type="button" className="settings-action" onClick={sendAuthCode} disabled={!authEmail.trim() || authActionPending || authLoading}>
-                    {authCodeSent ? "重新发送验证码" : "发送验证码"}
+                    {authCodeSent ? t("重新发送验证码") : t("发送验证码")}
                   </button>
-                  <button type="button" className="settings-action" onClick={verifyAuthCode} disabled={!authCodeSent || !authCode.trim() || authActionPending}>
-                    登录
-                  </button>
+                  <button type="button" className="settings-action" onClick={verifyAuthCode} disabled={!authCodeSent || !authCode.trim() || authActionPending}>{t("登录")}</button>
                 </div>
-                <div className="settings-data-note">未登录时继续使用本地数据；登录后可手动上传或恢复云端快照。</div>
+                <div className="settings-data-note">{t("未登录时继续使用本地数据；登录后可手动上传或恢复云端快照。")}</div>
               </>
             )}
           </div>
@@ -962,17 +975,17 @@ export function SettingsApp() {
           <div className="settings-card-head">
             <div>
               <div className="st-ch-kicker">— ARCHIVE</div>
-              <div className="st-ch-title">存档管理</div>
+              <div className="st-ch-title">{t("存档管理")}</div>
             </div>
-            <div className="settings-archive-metrics" aria-label="当前存档统计">
-              <span>{history.length} 条复原</span>
-              <span>{dailyLevels.length} 天测试</span>
+            <div className="settings-archive-metrics" aria-label={t("当前存档统计")}>
+              <span>{history.length}{" "}{t("条复原")}</span>
+              <span>{dailyLevels.length}{" "}{t("天测试")}</span>
             </div>
           </div>
           <div className="settings-card-body settings-card-body-data">
             <div className="settings-archive-controls">
               <div className="settings-archive-select-field">
-                <span>当前存档</span>
+                <span>{t("当前存档")}</span>
                 <ArchiveSelectField
                   id="settings-statistics-archive"
                   archives={statisticsArchives}
@@ -980,19 +993,15 @@ export function SettingsApp() {
                   onSelect={handleArchiveChange}
                 />
               </div>
-              <button type="button" className="settings-action" onClick={handleCreateArchive}>
-                创建新存档
-              </button>
-              <button type="button" className="settings-action" onClick={handleRenameArchive}>
-                重命名存档
-              </button>
+              <button type="button" className="settings-action" onClick={handleCreateArchive}>{t("创建新存档")}</button>
+              <button type="button" className="settings-action" onClick={handleRenameArchive}>{t("重命名存档")}</button>
               <button
                 type="button"
                 className="settings-action settings-action-danger"
                 onClick={handleArchiveDangerAction}
                 disabled={activeArchiveId === DEFAULT_STATISTICS_ARCHIVE_ID && history.length === 0 && dailyLevels.length === 0 && dailyPractice.length === 0}
               >
-                {activeArchiveId === DEFAULT_STATISTICS_ARCHIVE_ID ? "清空当前存档" : "删除当前存档"}
+                {activeArchiveId === DEFAULT_STATISTICS_ARCHIVE_ID ? t("清空当前存档") : t("删除当前存档")}
               </button>
             </div>
             <div className="settings-data-actions">
@@ -1001,12 +1010,8 @@ export function SettingsApp() {
                 className="settings-action"
                 onClick={exportHistory}
                 disabled={history.length === 0 && dailyLevels.length === 0 && dailyPractice.length === 0 && !hasFormulaData}
-              >
-                导出当前存档
-              </button>
-              <button type="button" className="settings-action" onClick={triggerImport}>
-                导入到当前存档
-              </button>
+              >{t("导出当前存档")}</button>
+              <button type="button" className="settings-action" onClick={triggerImport}>{t("导入到当前存档")}</button>
               <input
                 ref={fileInputRef}
                 type="file"
@@ -1030,7 +1035,7 @@ export function SettingsApp() {
                 <div className="settings-card-head">
                   <div>
                     <div className="st-ch-kicker">— CONSOLE</div>
-                    <div className="st-ch-title">Console 打印管理</div>
+                    <div className="st-ch-title">{t("Console 打印管理")}</div>
                   </div>
                   <div className="settings-current">{consoleLoggingSettings.enabled ? "ON" : "OFF"}</div>
                 </div>
@@ -1042,12 +1047,12 @@ export function SettingsApp() {
                       onChange={(event) => handleConsoleLoggingChange("enabled", event.target.checked)}
                     />
                     <span className="settings-toggle-copy">
-                      <b>开启 Console 打印</b>
-                      <small>打印内容进入浏览器 DevTools Console；默认关闭。</small>
+                      <b>{t("开启 Console 打印")}</b>
+                      <small>{t("打印内容进入浏览器 DevTools Console；默认关闭。")}</small>
                     </span>
                   </label>
 
-                  <div className="settings-toggle-grid" aria-label="Console 打印类别">
+                  <div className="settings-toggle-grid" aria-label={t("Console 打印类别")}>
                     {CONSOLE_LOGGING_OPTIONS.map((option) => (
                       <label key={option.key} className="settings-toggle-row">
                         <input
@@ -1056,8 +1061,8 @@ export function SettingsApp() {
                           onChange={(event) => handleConsoleLoggingChange(option.key, event.target.checked)}
                         />
                         <span className="settings-toggle-copy">
-                          <b>{option.label}</b>
-                          <small>{option.hint}</small>
+                          <b>{t(option.label)}</b>
+                          <small>{t(option.hint)}</small>
                         </span>
                       </label>
                     ))}
@@ -1069,17 +1074,13 @@ export function SettingsApp() {
                 <div className="settings-card-head">
                   <div>
                     <div className="st-ch-kicker">— DEBUG</div>
-                    <div className="st-ch-title">Debug 管理</div>
+                    <div className="st-ch-title">{t("Debug 管理")}</div>
                   </div>
                 </div>
                 <div className="settings-card-body settings-card-body-console">
                   <div className="settings-debug-actions">
-                    <button type="button" className="settings-action" onClick={cleanupDeprecatedFormulaData}>
-                      清理弃用数据
-                    </button>
-                    <div className="settings-data-note">
-                      删除收藏、学习状态、练习统计和页面状态中已不在公式 JSON 里的公式数据。
-                    </div>
+                    <button type="button" className="settings-action" onClick={cleanupDeprecatedFormulaData}>{t("清理弃用数据")}</button>
+                    <div className="settings-data-note">{t("删除收藏、学习状态、练习统计和页面状态中已不在公式 JSON 里的公式数据。")}</div>
                   </div>
                 </div>
               </section>
@@ -1115,6 +1116,7 @@ function ArchiveSelectField({
   selected: string;
   onSelect(archiveId: string): void;
 }) {
+  const { t } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const selectedArchive = archives.find((archive) => archive.id === selected);
 
@@ -1142,7 +1144,7 @@ function ArchiveSelectField({
           if (event.key === "Escape") setIsOpen(false);
         }}
       >
-        <span className="settings-color-select-label">{selectedArchive?.name ?? "默认存档"}</span>
+        <span className="settings-color-select-label">{t(selectedArchive?.name ?? "默认存档")}</span>
       </button>
       {isOpen && (
         <div id={`${id}-menu`} className="settings-color-menu settings-palette-menu" role="listbox" aria-labelledby={id}>
@@ -1157,7 +1159,7 @@ function ArchiveSelectField({
                 aria-selected={isSelected}
                 onClick={() => handleSelect(archive.id)}
               >
-                <span>{archive.name}</span>
+                <span>{t(archive.name)}</span>
               </button>
             );
           })}
@@ -1176,6 +1178,7 @@ function PaletteSelectField({
   selected: CubeColorPaletteId;
   onSelect(paletteId: CubeColorPaletteId): void;
 }) {
+  const { t } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const selectedPalette = COLOR_PALETTES[selected];
 
@@ -1204,7 +1207,7 @@ function PaletteSelectField({
         }}
       >
         <PaletteSwatches colors={selectedPalette.colors} />
-        <span className="settings-color-select-label">{selectedPalette.label}</span>
+        <span className="settings-color-select-label">{t(selectedPalette.label)}</span>
       </button>
       {isOpen && (
         <div id={`${id}-menu`} className="settings-color-menu settings-palette-menu" role="listbox" aria-labelledby={id}>
@@ -1220,7 +1223,7 @@ function PaletteSelectField({
                 onClick={() => handleSelect(paletteId)}
               >
                 <PaletteSwatches colors={palette.colors} />
-                <span>{palette.label}</span>
+                <span>{t(palette.label)}</span>
               </button>
             );
           })}
@@ -1253,6 +1256,7 @@ function ColorSelectField({
   disabledColors?: CubeColor[];
   onSelect(color: CubeColor): void;
 }) {
+  const { t } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
 
   function handleSelect(color: CubeColor) {
@@ -1281,7 +1285,7 @@ function ColorSelectField({
         }}
       >
         <span className="settings-color-select-dot" style={{ background: paletteColors[selected] }}></span>
-        <span className="settings-color-select-label">{COLOR_LABEL[selected]}</span>
+        <span className="settings-color-select-label">{t(COLOR_LABEL[selected])}</span>
       </button>
       {isOpen && (
         <div id={`${id}-menu`} className="settings-color-menu" role="listbox" aria-labelledby={id}>
@@ -1299,7 +1303,7 @@ function ColorSelectField({
                 onClick={() => handleSelect(color)}
               >
                 <span className="settings-color-option-dot" style={{ background: paletteColors[color] }}></span>
-                <span>{COLOR_LABEL[color]}</span>
+                <span>{t(COLOR_LABEL[color])}</span>
               </button>
             );
           })}

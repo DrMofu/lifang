@@ -3,6 +3,7 @@
 import { type CSSProperties, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { AlgorithmStepToken } from "@/components/algorithm-step-token";
 import { AppFooter, AppTopbar } from "@/components/app-shell";
+import { useLanguage } from "@/components/language-provider";
 import { useCubeAppearance } from "@/components/cube-appearance-provider";
 import { useCubeConnection } from "@/components/cube-connection-provider";
 import { FormulaCubeImage, FormulaTopViewImage } from "@/components/formula-cube-image";
@@ -502,8 +503,9 @@ function renderAlgorithmWithGroups(algo: string) {
 }
 
 function FormulaDescription({ description }: { description?: string }) {
+  const { t } = useLanguage();
   if (!description) return null;
-  return <span className="formula-description">{description}</span>;
+  return <span className="formula-description">{t(description)}</span>;
 }
 
 function groupAlgorithmRows(algo: string) {
@@ -562,6 +564,7 @@ function FormulaStage({
   onLearningStatusChange(status: LearningStatus): void;
   averageSettings: AverageTimeSettings;
 }) {
+  const { t } = useLanguage();
   const cubeMountRef = useRef<HTMLDivElement | null>(null);
   const cubeApiRef = useRef<SmartCubeApi | null>(null);
   const playingRef = useRef(false);
@@ -635,16 +638,16 @@ function FormulaStage({
   const formulaTopViewFaceColors = useMemo(() => getFormulaTopViewFaceColors(orientation), [orientation]);
 
   const connected = connectionState === "connected";
-  const learningStatusLabel = LEARNING_STATUSES.find((status) => status.key === learningStatus)?.shortLabel ?? "未学习";
+  const learningStatusLabel = t(LEARNING_STATUSES.find((status) => status.key === learningStatus)?.shortLabel ?? "未学习");
   const canUseFocusMode = active.sourceCat === "oll" || active.sourceCat === "pll";
   const showVariantTag = active.name !== "主公式";
-  const formulaTitle = showVariantTag ? `${active.caseName} · ${active.name}` : active.caseName;
+  const formulaTitle = showVariantTag ? `${t(active.caseName)} · ${t(active.name)}` : t(active.caseName);
   const formulaAverage = calculateAverageTime(practiceStats.times, averageSettings);
   const formulaAverageLabel = formulaAverage ? fmtShort(formulaAverage.valueMs) : "--";
-  const formulaAverageDescription = describeAverageTimeSettings(averageSettings);
+  const formulaAverageDescription = t(describeAverageTimeSettings(averageSettings));
   const todayPracticeCount = getTodayPracticeCount(practiceStats);
   const todayPracticeTone = getTodayPracticeTone(todayPracticeCount);
-  const bestPracticeLabel = `最佳成绩 ${fmtShort(practiceStats.bestMs ?? null)}`;
+  const bestPracticeLabel = t(`最佳成绩 ${fmtShort(practiceStats.bestMs ?? null)}`);
   const displayedMoveCount = researchMode ? researchMoves.length : algoMoves.length;
 
   function setPracticeStatuses(next: PracticeStatus[]) {
@@ -1117,7 +1120,7 @@ function FormulaStage({
         setPracticeStats(newStats);
         onStatsChange(displayStatsKey, newStats);
         if (typeof previousBest === "number" && elapsed < previousBest) {
-          showPbToast(`${fmtShort(elapsed)} 打破最佳成绩！`);
+          showPbToast(t(`${fmtShort(elapsed)} 打破最佳成绩！`));
         }
         nextRoundTimerRef.current = window.setTimeout(() => {
           nextRoundTimerRef.current = null;
@@ -1153,7 +1156,7 @@ function FormulaStage({
       setPracticeMs(0);
       setPreviewStartState();
       cubeApiRef.current?.setHintMove(algoMoves[nextInteractiveMoveIndex(0)] ?? null);
-      showPracticeToast(`转动错误，检测到${detected}，应该为${expected}，请重新开始`);
+      showPracticeToast(t(`转动错误，检测到${detected}，应该为${expected}，请重新开始`));
     }
   }
 
@@ -1161,9 +1164,9 @@ function FormulaStage({
     if (researchMovesRef.current.length === 0) return;
     try {
       await navigator.clipboard.writeText(researchMovesRef.current.join(" "));
-      showPbToast("研究记录已复制");
+      showPbToast(t("研究记录已复制"));
     } catch {
-      showPracticeToast("复制失败，请重试");
+      showPracticeToast(t("复制失败，请重试"));
     }
   }
 
@@ -1285,36 +1288,29 @@ function FormulaStage({
         <div className="cube-mount" ref={cubeMountRef}></div>
         <div className={`stage-controls${canUseFocusMode ? " with-layer-toggle" : ""}`}>
           <button className={`sc-btn${playbackActive ? " active" : ""}`} onClick={play} type="button">
-            <span className="sc-key" aria-hidden="true">P</span>
-            播放公式
-          </button>
+            <span className="sc-key" aria-hidden="true">P</span>{t("播放公式")}</button>
           <button className={`sc-btn${researchMode ? " active" : ""}`} onClick={toggleResearchMode} type="button">
             <span className="sc-key" aria-hidden="true">Q</span>
-            {researchMode ? "退出研究" : "研究模式"}
+            {researchMode ? t("退出研究") : t("研究模式")}
           </button>
           <button className="sc-btn" onClick={resetDisplayOrientation} disabled={!viewResetEnabled} type="button">
-            <span className="sc-key" aria-hidden="true">R</span>
-            视角归位
-          </button>
+            <span className="sc-key" aria-hidden="true">R</span>{t("视角归位")}</button>
           {canUseFocusMode && (
             <button className={`sc-btn${lowerLayerHidden ? " active" : ""}`} onClick={toggleLowerLayerHidden} type="button">
-              <span className="sc-key" aria-hidden="true">H</span>
-              专注模式
-            </button>
+              <span className="sc-key" aria-hidden="true">H</span>{t("专注模式")}</button>
           )}
         </div>
       </div>
       <div className="fm-side">
         <div className="formula-timer-card">
-          <div className={`timer formula-practice-timer${practiceTiming ? " timer-solving" : ""}`} aria-label="实时计时">
+          <div className={`timer formula-practice-timer${practiceTiming ? " timer-solving" : ""}`} aria-label={t("实时计时")}>
             <div className={`t-display${practiceTiming ? " t-active" : ""}`}>
               {fmtLiveSeconds(practiceMs)}
               <span className="t-unit">s</span>
             </div>
-            <div className="formula-timer-tags" aria-label="公式成绩">
+            <div className="formula-timer-tags" aria-label={t("公式成绩")}>
               <span className="formula-hero-tag formula-best-tag">{bestPracticeLabel}</span>
-              <span className="formula-hero-tag strong formula-average-tag" tabIndex={0}>
-                稳定成绩 {formulaAverageLabel}
+              <span className="formula-hero-tag strong formula-average-tag" tabIndex={0}>{t("稳定成绩")}{formulaAverageLabel}
                 <span className="formula-average-popover" role="tooltip">
                   {formulaAverageDescription}
                 </span>
@@ -1341,7 +1337,7 @@ function FormulaStage({
                   className="formula-cube-svg formula-cube-svg-hero"
                 />
               ) : (
-                <span>{active.caseName}</span>
+                <span>{t(active.caseName)}</span>
               )}
             </div>
             <div className="formula-hero-info">
@@ -1352,7 +1348,7 @@ function FormulaStage({
                 </h2>
                 <b>{displayedMoveCount} MOVES</b>
               </div>
-              <div className="formula-hero-tags" aria-label="公式信息">
+              <div className="formula-hero-tags" aria-label={t("公式信息")}>
                 <div
                   className="formula-status-menu-wrap"
                   onBlur={(event) => {
@@ -1377,7 +1373,7 @@ function FormulaStage({
                     <span className="formula-status-caret" aria-hidden="true"></span>
                   </button>
                   {learningMenuOpen && (
-                    <div className="formula-status-menu" role="menu" aria-label="切换学习状态">
+                    <div className="formula-status-menu" role="menu" aria-label={t("切换学习状态")}>
                       {LEARNING_STATUSES.map((status) => (
                         <button
                           key={status.key}
@@ -1390,7 +1386,7 @@ function FormulaStage({
                             setLearningMenuOpen(false);
                           }}
                         >
-                          {status.label}
+                          {t(status.label)}
                         </button>
                       ))}
                     </div>
@@ -1400,7 +1396,7 @@ function FormulaStage({
             </div>
           </div>
           {researchMode ? (
-            <div className="algo-display formula-research-log" aria-label="研究模式转动记录">
+            <div className="algo-display formula-research-log" aria-label={t("研究模式转动记录")}>
               {researchMoves.length > 0 ? (
                 <div className="algo-row">
                   {researchMoves.map((move, index) => (
@@ -1412,7 +1408,7 @@ function FormulaStage({
                   ))}
                 </div>
               ) : (
-                <div className="formula-research-empty">转动魔方开始记录</div>
+                <div className="formula-research-empty">{t("转动魔方开始记录")}</div>
               )}
             </div>
           ) : (
@@ -1439,34 +1435,22 @@ function FormulaStage({
                   className="mini-btn formula-rotate-btn"
                   onClick={rotateFormulaClockwise}
                   type="button"
-                >
-                  顺时针旋转
-                </button>
+                >{t("顺时针旋转")}</button>
                 <button
                   className="mini-btn formula-rotate-btn"
                   onClick={rotateFormulaCounterClockwise}
                   type="button"
-                >
-                  逆时针旋转
-                </button>
+                >{t("逆时针旋转")}</button>
               </>
             )}
             {researchMode ? (
-              <button className="mini-btn full primary" onClick={() => void copyResearchMoves()} disabled={researchMoves.length === 0}>
-                复制记录
-              </button>
+              <button className="mini-btn full primary" onClick={() => void copyResearchMoves()} disabled={researchMoves.length === 0}>{t("复制记录")}</button>
             ) : !connected ? (
-              <button className="mini-btn full primary" onClick={() => void connectRealCube()}>
-                连接魔方
-              </button>
+              <button className="mini-btn full primary" onClick={() => void connectRealCube()}>{t("连接魔方")}</button>
             ) : practiceActive ? (
-              <button className="mini-btn full primary" onClick={() => resetPractice()}>
-                停止练习
-              </button>
+              <button className="mini-btn full primary" onClick={() => resetPractice()}>{t("停止练习")}</button>
             ) : (
-              <button className="mini-btn full primary" onClick={beginPractice}>
-                开始练习
-              </button>
+              <button className="mini-btn full primary" onClick={beginPractice}>{t("开始练习")}</button>
             )}
           </div>
         </div>
@@ -1476,11 +1460,11 @@ function FormulaStage({
             <div className="tr-section formula-keypad-section">
               <div className="formula-stats-head">
                 <div className="formula-title-line">
-                  <div className="formula-card-title">公式键盘</div>
+                  <div className="formula-card-title">{t("公式键盘")}</div>
                   <div className="formula-kicker">KEYPAD</div>
                 </div>
               </div>
-              <div className="formula-keypad" aria-label="研究模式公式键盘">
+              <div className="formula-keypad" aria-label={t("研究模式公式键盘")}>
                 {RESEARCH_KEYPAD_GROUPS.map((group) => (
                   <div className="formula-keypad-group" key={group.label}>
                     <div className="formula-keypad-label">{group.label}</div>
@@ -1506,17 +1490,13 @@ function FormulaStage({
                       type="button"
                       onClick={deleteResearchMove}
                       disabled={researchMoves.length === 0}
-                    >
-                      删除
-                    </button>
+                    >{t("删除")}</button>
                     <button
                       className="formula-keypad-clear"
                       type="button"
                       onClick={clearResearchMoves}
                       disabled={researchMoves.length === 0}
-                    >
-                      清空
-                    </button>
+                    >{t("清空")}</button>
                   </div>
                 </div>
               </div>
@@ -1525,13 +1505,13 @@ function FormulaStage({
             <div className="tr-section formula-stats-section">
               <div className="formula-stats-head">
                 <div className="formula-title-line">
-                  <div className="formula-card-title">练习统计</div>
+                  <div className="formula-card-title">{t("练习统计")}</div>
                   <div className="formula-kicker">STATS</div>
                 </div>
-                <span className={`formula-hero-tag formula-today-stat tone-${todayPracticeTone}`}>今日 {todayPracticeCount} 次</span>
+                <span className={`formula-hero-tag formula-today-stat tone-${todayPracticeTone}`}>{t("今日")}{" "}{todayPracticeCount}{" "}{t("次")}</span>
               </div>
               {practiceStats.count === 0 || practiceStats.times.length === 0 ? (
-                <div className="fm-stats-empty">暂无记录，开始练习后自动统计。</div>
+                <div className="fm-stats-empty">{t("暂无记录，开始练习后自动统计。")}</div>
               ) : (
                 (() => {
                   const recentTimes = practiceStats.times;
@@ -1544,7 +1524,7 @@ function FormulaStage({
                         className={`fm-stats-recent${statsScrolling ? " scrolling" : ""}`}
                         ref={formulaStatsListRef}
                         style={{ "--formula-stats-rows": formulaStatsRows } as CSSProperties}
-                        aria-label="最近二十次练习成绩"
+                        aria-label={t("最近二十次练习成绩")}
                         onScroll={handleStatsScroll}
                         onPointerLeave={() => setStatsScrolling(false)}
                       >
@@ -1577,6 +1557,7 @@ function FormulaStage({
 }
 
 export function FormulasApp() {
+  const { t } = useLanguage();
   const { orientation, faceColors } = useCubeAppearance();
   const formulaTopViewFaceColors = useMemo(() => getFormulaTopViewFaceColors(orientation), [orientation]);
   const initialFormulaState = useMemo(() => readFormulaState() ?? getDefaultFormulaState(), []);
@@ -1617,7 +1598,7 @@ export function FormulasApp() {
     : formulaCases.filter((item) => item.sourceCat === cat);
   const catData = isFavoritesView
     ? {
-        name: "收藏夹",
+        name: t("收藏夹"),
         full: "Favorites",
         items: categoryCases,
       }
@@ -1739,7 +1720,7 @@ export function FormulasApp() {
     : findVariantByKey(categoryCases, activeKey) || categoryCases[0]?.variants[0] || null;
   const activeCatKey = active?.sourceCat ?? cat;
   const activeLearningStatus = active ? getLearningStatus(learningStatuses, active.key) : "unpracticed";
-  const emptyMessage = filter.trim() ? "无匹配结果" : statusFilter === "all" ? "无匹配结果" : "此状态下暂无公式";
+  const emptyMessage = filter.trim() ? t("无匹配结果") : statusFilter === "all" ? t("无匹配结果") : t("此状态下暂无公式");
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
@@ -1833,7 +1814,7 @@ export function FormulasApp() {
 
       <main className="fm-grid">
         <section className="fm-left">
-          <div className="fm-category-tabs" aria-label="公式类别">
+          <div className="fm-category-tabs" aria-label={t("公式类别")}>
             {Object.entries(FORMULAS).map(([key, value]) => (
               <button
                 key={key}
@@ -1841,21 +1822,19 @@ export function FormulasApp() {
                 className={`fm-category-tab${cat === key ? " active" : ""}`}
                 onClick={() => changeCat(key as FormulaKey)}
               >
-                {value.name}
+                {t(value.name)}
               </button>
             ))}
             <button
               type="button"
               className={`fm-category-tab${isFavoritesView ? " active" : ""}`}
               onClick={() => changeCat("favorites")}
-            >
-              收藏夹
-            </button>
+            >{t("收藏夹")}</button>
           </div>
           <div className="fm-search">
             <input
               type="text"
-              placeholder={`搜索 ${catData.name}…`}
+              placeholder={t(`搜索 ${catData.name}…`)}
               value={filter}
               onChange={(event) => setFilter(event.target.value)}
             />
@@ -1863,13 +1842,13 @@ export function FormulasApp() {
               <button
                 className={`fm-fav-toggle${showFavOnly ? " active" : ""}`}
                 onClick={() => setShowFavOnly((value) => !value)}
-                title="只看收藏"
+                title={t("只看收藏")}
               >
                 ★
               </button>
             )}
           </div>
-          <div className="fm-status-filter" aria-label="学习状态筛选">
+          <div className="fm-status-filter" aria-label={t("学习状态筛选")}>
             {STATUS_FILTERS.map((status) => (
               <button
                 key={status.key}
@@ -1877,7 +1856,7 @@ export function FormulasApp() {
                 className={`fm-status-filter-btn${statusFilter === status.key ? " active" : ""}`}
                 onClick={() => setStatusFilter(status.key)}
               >
-                {status.label}
+                {t(status.label)}
               </button>
             ))}
           </div>
@@ -1892,7 +1871,7 @@ export function FormulasApp() {
                 const caseExpanded = usesVariantList && expandedCaseIds.has(item.id);
                 const summary = usesVariantList ? null : formatListStats(getCaseStats(item, formulaStats), averageSettings);
                 const itemLearningStatus = getLearningStatus(learningStatuses, item.variants[0]?.key ?? item.id);
-                const statusLabel = LEARNING_STATUSES.find((status) => status.key === itemLearningStatus)?.shortLabel ?? "未学习";
+                const statusLabel = t(LEARNING_STATUSES.find((status) => status.key === itemLearningStatus)?.shortLabel ?? "未学习");
                 const learningCounts = getCaseLearningCounts(item, learningStatuses);
                 const casePreviewFacelets = getFormulaCasePreviewFacelets(item);
                 return (
@@ -1932,27 +1911,27 @@ export function FormulasApp() {
                       )}
                       <div className="fmr-l">
                         <div className="fmr-name">
-                          <span>{item.name}</span>
+                          <span>{t(item.name)}</span>
                           <FormulaDescription description={item.variants.length === 1 ? item.variants[0]?.description : item.description} />
                         </div>
                         <div className="fmr-meta">
                           {usesVariantList ? (
                             <>
                               {learningCounts.mastered > 0 && (
-                                <span className="formula-status-badge status-mastered">{learningCounts.mastered}个公式已掌握</span>
+                                <span className="formula-status-badge status-mastered">{learningCounts.mastered}{t("个公式已掌握")}</span>
                               )}
                               {learningCounts.learning > 0 && (
-                                <span className="formula-status-badge status-learning">{learningCounts.learning}个公式学习中</span>
+                                <span className="formula-status-badge status-learning">{learningCounts.learning}{t("个公式学习中")}</span>
                               )}
                             </>
                           ) : (
                             <span className={`formula-status-badge status-${itemLearningStatus}`}>{statusLabel}</span>
                           )}
-                          {usesVariantList && <span className="formula-variant-count">{totalVariantCount}个公式</span>}
+                          {usesVariantList && <span className="formula-variant-count">{totalVariantCount}{t("个公式")}</span>}
                           {summary && (
                             <>
-                              <span>最佳 {summary.best}</span>
-                              <span>平均 {summary.average}</span>
+                              <span>{t("最佳")}{" "}{summary.best}</span>
+                              <span>{t("平均")}{" "}{summary.average}</span>
                             </>
                           )}
                         </div>
@@ -1964,7 +1943,7 @@ export function FormulasApp() {
                             event.stopPropagation();
                             toggleCaseExpanded(item.id);
                           }}
-                          title={caseExpanded ? "收起公式" : "展开公式"}
+                          title={caseExpanded ? t("收起公式") : t("展开公式")}
                           type="button"
                         >
                           ▸
@@ -1988,7 +1967,7 @@ export function FormulasApp() {
                           const variantActive = variant.key === activeKey;
                           const variantStats = formatListStats(formulaStats[variant.key], averageSettings);
                           const variantStatus = getLearningStatus(learningStatuses, variant.key);
-                          const variantStatusLabel = LEARNING_STATUSES.find((status) => status.key === variantStatus)?.shortLabel ?? "未学习";
+                          const variantStatusLabel = t(LEARNING_STATUSES.find((status) => status.key === variantStatus)?.shortLabel ?? "未学习");
                           const isFav = favs.includes(variant.key);
                           return (
                             <div
@@ -2009,15 +1988,15 @@ export function FormulasApp() {
                             >
                               <div className="fvr-main">
                                 <div className="fvr-name">
-                                  <span>{variant.name}</span>
+                                  <span>{t(variant.name)}</span>
                                   <FormulaDescription description={variant.description} />
                                   {isFavoritesView && <b>{variant.caseName}</b>}
                                 </div>
                                 <div className="fvr-algo">{variant.algo}</div>
                                 <div className="fmr-meta">
                                   <span className={`formula-status-badge status-${variantStatus}`}>{variantStatusLabel}</span>
-                                  <span>最佳 {variantStats.best}</span>
-                                  <span>平均 {variantStats.average}</span>
+                                  <span>{t("最佳")}{" "}{variantStats.best}</span>
+                                  <span>{t("平均")}{" "}{variantStats.average}</span>
                                 </div>
                               </div>
                               <button
@@ -2049,7 +2028,7 @@ export function FormulasApp() {
               <div className="fft-list">
                 {formulaTip.variants.map((variant) => (
                   <div key={variant.key} className="fft-row">
-                    {formulaTip.variants.length > 1 && <div className="fft-name">{variant.name}</div>}
+                    {formulaTip.variants.length > 1 && <div className="fft-name">{t(variant.name)}</div>}
                     <div className="fft-algo">{renderAlgorithmWithGroups(variant.algo)}</div>
                   </div>
                 ))}
@@ -2075,9 +2054,9 @@ export function FormulasApp() {
             </>
           ) : (
             <div className="fm-detail-empty">
-              <div className="fmd-cat">收藏夹</div>
-              <div className="fmd-name">还没有收藏公式</div>
-              <div className="fm-empty">点击任意公式右侧的星标后，会在这里集中显示。</div>
+              <div className="fmd-cat">{t("收藏夹")}</div>
+              <div className="fmd-name">{t("还没有收藏公式")}</div>
+              <div className="fm-empty">{t("点击任意公式右侧的星标后，会在这里集中显示。")}</div>
             </div>
           )}
         </section>

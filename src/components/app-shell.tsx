@@ -4,14 +4,16 @@ import { type CSSProperties, type FocusEvent, useEffect, useRef, useState } from
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCubeConnection } from "@/components/cube-connection-provider";
+import { useLanguage } from "@/components/language-provider";
+import type { MessageKey } from "@/lib/i18n-messages";
 import settings from "@/settings.json";
 
-const NAV = [
-  { href: "/practice", label: "练习", icon: "practice" },
-  { href: "/trainer", label: "专项", icon: "trainer" },
-  { href: "/formulas", label: "公式", icon: "cube" },
-  { href: "/stats", label: "统计", icon: "stats" },
-  { href: "/settings", label: "设置", icon: "settings" },
+const NAV: Array<{ href: string; labelKey: MessageKey; icon: string }> = [
+  { href: "/practice", labelKey: "nav.practice", icon: "practice" },
+  { href: "/trainer", labelKey: "nav.trainer", icon: "trainer" },
+  { href: "/formulas", labelKey: "nav.formulas", icon: "cube" },
+  { href: "/stats", labelKey: "nav.stats", icon: "stats" },
+  { href: "/settings", labelKey: "nav.settings", icon: "settings" },
 ];
 
 const PRACTICE_NAV = NAV.slice(0, 2);
@@ -37,14 +39,19 @@ function navItemActive(pathname: string, href: string) {
 }
 
 export function AppTopbar({ showCompactConnection = true }: { showCompactConnection?: boolean }) {
+  const { t } = useLanguage();
   const pathname = usePathname();
   const [practiceMenuOpen, setPracticeMenuOpen] = useState(false);
-  const [rememberedPracticeHref, setRememberedPracticeHref] = useState(readPracticeNavMemory);
+  const [rememberedPracticeHref, setRememberedPracticeHref] = useState<(typeof PRACTICE_NAV)[number]["href"]>("/practice");
   const practiceGroupRef = useRef<HTMLDivElement | null>(null);
   const mobilePracticeGroupRef = useRef<HTMLDivElement | null>(null);
   const routePracticeItem = PRACTICE_NAV.find((item) => navItemActive(pathname, item.href)) ?? null;
   const activePracticeItem = routePracticeItem ?? PRACTICE_NAV.find((item) => item.href === rememberedPracticeHref) ?? PRACTICE_NAV[0];
   const practiceGroupActive = Boolean(routePracticeItem);
+
+  useEffect(() => {
+    setRememberedPracticeHref(readPracticeNavMemory());
+  }, []);
 
   useEffect(() => {
     setPracticeMenuOpen(false);
@@ -96,15 +103,15 @@ export function AppTopbar({ showCompactConnection = true }: { showCompactConnect
   return (
     <header className="topbar">
       <div className="brand">
-        <Link href="/" className="brand-link" aria-label="返回首页">
+        <Link href="/" className="brand-link" aria-label={t("nav.home")}>
           <BrandMark />
           <div className="brand-text">
-            <div className="brand-name">立方</div>
-            <div className="brand-sub">魔方练习小站 · {settings.version}</div>
+            <div className="brand-name">{t("brand.name")}</div>
+            <div className="brand-sub">{t("brand.subtitle")} · {settings.version}</div>
           </div>
         </Link>
       </div>
-      <nav className="topnav topnav-desktop" aria-label="主导航">
+      <nav className="topnav topnav-desktop" aria-label={t("nav.main")}>
         <div
           ref={practiceGroupRef}
           className={`navgroup${practiceMenuOpen ? " open" : ""}`}
@@ -121,10 +128,10 @@ export function AppTopbar({ showCompactConnection = true }: { showCompactConnect
             onClick={() => setPracticeMenuOpen(false)}
           >
             <NavIcon name={activePracticeItem.icon} />
-            <span>{activePracticeItem.label}</span>
+            <span>{t(activePracticeItem.labelKey)}</span>
             <small>01</small>
           </Link>
-          <div className="nav-dropdown" role="menu" aria-label="练习导航">
+          <div className="nav-dropdown" role="menu" aria-label={t("nav.practiceMenu")}>
             {PRACTICE_NAV.map((item) => {
               const active = navItemActive(pathname, item.href);
               return (
@@ -144,7 +151,7 @@ export function AppTopbar({ showCompactConnection = true }: { showCompactConnect
                   }}
                 >
                   <NavIcon name={item.icon} />
-                  <span>{item.label}</span>
+                  <span>{t(item.labelKey)}</span>
                 </Link>
               );
             })}
@@ -155,13 +162,13 @@ export function AppTopbar({ showCompactConnection = true }: { showCompactConnect
           return (
             <Link key={item.href} href={item.href} className={`navitem${active ? " active" : ""}`}>
               <NavIcon name={item.icon} />
-              <span>{item.label}</span>
+              <span>{t(item.labelKey)}</span>
               <small>{String(index + 2).padStart(2, "0")}</small>
             </Link>
           );
         })}
       </nav>
-      <nav className="topnav topnav-mobile" aria-label="主导航">
+      <nav className="topnav topnav-mobile" aria-label={t("nav.main")}>
         <div
           ref={mobilePracticeGroupRef}
           className={`navgroup${practiceMenuOpen ? " open" : ""}`}
@@ -175,10 +182,10 @@ export function AppTopbar({ showCompactConnection = true }: { showCompactConnect
             onClick={() => setPracticeMenuOpen((open) => !open)}
           >
             <NavIcon name={activePracticeItem.icon} />
-            <span>{activePracticeItem.label}</span>
+            <span>{t(activePracticeItem.labelKey)}</span>
             <small>01</small>
           </button>
-          <div className="nav-dropdown" role="menu" aria-label="练习导航">
+          <div className="nav-dropdown" role="menu" aria-label={t("nav.practiceMenu")}>
             {PRACTICE_NAV.map((item) => {
               const active = navItemActive(pathname, item.href);
               return (
@@ -198,7 +205,7 @@ export function AppTopbar({ showCompactConnection = true }: { showCompactConnect
                   }}
                 >
                   <NavIcon name={item.icon} />
-                  <span>{item.label}</span>
+                  <span>{t(item.labelKey)}</span>
                 </Link>
               );
             })}
@@ -209,7 +216,7 @@ export function AppTopbar({ showCompactConnection = true }: { showCompactConnect
           return (
             <Link key={item.href} href={item.href} className={`navitem${active ? " active" : ""}`}>
               <NavIcon name={item.icon} />
-              <span>{item.label}</span>
+              <span>{t(item.labelKey)}</span>
               <small>{String(index + 2).padStart(2, "0")}</small>
             </Link>
           );
@@ -233,6 +240,7 @@ export function BrandMark() {
 }
 
 export function CompactConnectButton() {
+  const { t } = useLanguage();
   const {
     connectionState,
     connectionInfo,
@@ -253,10 +261,10 @@ export function CompactConnectButton() {
   const label = connected
     ? connectionInfo.deviceName
     : connecting
-      ? "连接中 · 连接处理中"
+      ? t("connection.connecting")
         : connectionState === "error"
-          ? "连接失败 · 重试"
-          : "未连接 · 连接魔方";
+          ? t("connection.failed")
+          : t("connection.disconnected");
   const tooltipOpen = connected && (tooltipPinned || tooltipHovered);
 
   useEffect(() => {
@@ -334,14 +342,14 @@ export function CompactConnectButton() {
       )}
       {connectionPromptVisible && (
         <div className="top-connect-prompt" id="top-connect-prompt" role="status">
-          <div className="top-connect-prompt-title">转动魔方的白色面以开启魔方蓝牙响应</div>
-          <div className="top-connect-prompt-note">目前本项目只支持GAN魔方。</div>
+          <div className="top-connect-prompt-title">{t("connection.wakeHint")}</div>
+          <div className="top-connect-prompt-note">{t("connection.ganOnly")}</div>
         </div>
       )}
       <div className="top-connect-tooltip" id="top-connect-detail" role="tooltip" aria-hidden={!tooltipOpen}>
         <div className="top-connect-grid">
           <div className="top-connect-section">
-            <div className="top-connect-title">设备</div>
+            <div className="top-connect-title">{t("connection.device")}</div>
             <TopInfoRow label="Name" value={connectionInfo.deviceName} />
             <TopInfoRow label="MAC" value={connectionInfo.deviceMAC} />
             <TopInfoRow label="Battery" value={connectionInfo.batteryLevel == null ? "—" : `${connectionInfo.batteryLevel}%`} />
@@ -354,7 +362,7 @@ export function CompactConnectButton() {
             <TopInfoRow label="Facelets" value={facelets ? "READY" : "—"} />
           </div>
           <div className="top-connect-section">
-            <div className="top-connect-title">遥测</div>
+            <div className="top-connect-title">{t("connection.telemetry")}</div>
             <TopInfoRow label="Last Move" value={telemetry.lastMove} />
             <TopInfoRow label="Updated" value={telemetry.updatedAt} />
             <TopInfoRow label="Clock Skew" value={telemetry.clockSkew} />
@@ -372,7 +380,7 @@ export function CompactConnectButton() {
                     void disconnectCube();
                   }}
                 >
-                  断开连接
+                  {t("connection.disconnect")}
                 </button>
               </div>
             )}
@@ -384,12 +392,13 @@ export function CompactConnectButton() {
 }
 
 function BatteryIndicator({ level }: { level: number | null }) {
+  const { t } = useLanguage();
   const percent = level == null ? null : Math.max(0, Math.min(100, Math.round(level)));
   const style = { "--battery-level": `${percent ?? 0}%` } as CSSProperties;
   const label = percent == null ? "--" : `${percent}%`;
 
   return (
-    <span className="top-battery" style={style} aria-label={percent == null ? "电量未知" : `电量 ${percent}%`}>
+    <span className="top-battery" style={style} aria-label={percent == null ? t("connection.batteryUnknown") : `Battery ${percent}%`}>
       <span className="top-battery-fill" aria-hidden="true"></span>
       <span className="top-battery-text">{label}</span>
       <span className="top-battery-text top-battery-text-invert" aria-hidden="true">{label}</span>
