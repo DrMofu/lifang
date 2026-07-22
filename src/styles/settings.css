@@ -58,6 +58,11 @@
 }
 
 .settings-debug-actions {
+  display: grid;
+  gap: 12px;
+}
+
+.settings-debug-action-item {
   display: flex;
   flex-wrap: wrap;
   align-items: center;

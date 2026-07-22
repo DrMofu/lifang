@@ -25,12 +25,12 @@
     {
       "id": "sune",
       "name": "Sune",
-      "algo": "R U R' U R U2 R'"
+      "algo": "(R U R' U) (R U2 R')"
     },
     {
       "id": "antisune",
       "name": "Anti-Sune",
-      "algo": "R U2 R' U' R U' R'"
+      "algo": "(R U2 R') (U' R U' R')"
     },
     {
       "id": "niklas",
@@ -51,6 +51,11 @@
       "id": "u-sexy",
       "name": "U Sexy",
       "algo": "U R U R' U'"
+    },
+    {
+      "id": "f-sexy",
+      "name": "F Sexy",
+      "algo": "F R U R' U' F'"
     }
   ]
 }

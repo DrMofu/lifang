@@ -33,6 +33,7 @@ export const CUBE_CAMERA_PRESETS = {
   formulas: {
     displayState: {
       ...DEFAULT_CUBE_DISPLAY_STATE,
+      cameraDistance: 8,
     },
   },
 } as const satisfies Record<"practice" | "trainer" | "formulas", CubeCameraPreset>;

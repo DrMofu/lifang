@@ -5,6 +5,7 @@ import { CubeAppearanceProvider } from "@/components/cube-appearance-provider";
 import { CubeConnectionProvider } from "@/components/cube-connection-provider";
 import { LanguageProvider } from "@/components/language-provider";
 import { ScrollbarVisibilityProvider } from "@/components/scrollbar-visibility-provider";
+import { SystemNotificationProvider } from "@/components/system-notification-dialog";
 import { detectLocale, isLocale, LANGUAGE_COOKIE_KEY } from "@/lib/i18n";
 import { ScreenWakeLockProvider } from "@/lib/screen-wake-lock";
 import "./globals.css";
@@ -39,14 +40,16 @@ export default async function RootLayout({
     <html lang={initialLocale === "zh" ? "zh-CN" : "en"}>
       <body suppressHydrationWarning>
         <LanguageProvider initialLocale={initialLocale}>
-          <AuthProvider>
-            <CubeAppearanceProvider>
-              <CubeConnectionProvider>
-                <ScrollbarVisibilityProvider />
-                <ScreenWakeLockProvider>{children}</ScreenWakeLockProvider>
-              </CubeConnectionProvider>
-            </CubeAppearanceProvider>
-          </AuthProvider>
+          <SystemNotificationProvider>
+            <AuthProvider>
+              <CubeAppearanceProvider>
+                <CubeConnectionProvider>
+                  <ScrollbarVisibilityProvider />
+                  <ScreenWakeLockProvider>{children}</ScreenWakeLockProvider>
+                </CubeConnectionProvider>
+              </CubeAppearanceProvider>
+            </AuthProvider>
+          </SystemNotificationProvider>
         </LanguageProvider>
       </body>
     </html>

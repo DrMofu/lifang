@@ -5,6 +5,7 @@
     {
       "id": "oll-01",
       "name": "OLL 1",
+      "shape": "dot",
       "algos": [
         {
           "id": "oll-01-1",
@@ -17,11 +18,12 @@
     {
       "id": "oll-02",
       "name": "OLL 2",
+      "shape": "dot",
       "algos": [
         {
           "id": "oll-02-1",
           "name": "公式一",
-          "algo": "F (R U R' U') F' f (R U R' U') f'"
+          "algo": "(F R U R' U' F') (f R U R' U' f')"
         }
       ],
       "facelets": "XXXXUXXXXXUXRRRRRRXUUFFFFFFDDDDDDDDDUUULLLLLLUUXBBBBBB"
@@ -29,11 +31,12 @@
     {
       "id": "oll-03",
       "name": "OLL 3",
+      "shape": "dot",
       "algos": [
         {
           "id": "oll-03-1",
           "name": "公式一",
-          "algo": "f (R U R' U') f' U' F (R U R' U') F'"
+          "algo": "(f R U R' U' f') U' (F R U R' U' F')"
         }
       ],
       "facelets": "XXXXUXXXUXUURRRRRRXUXFFFFFFDDDDDDDDDXUULLLLLLXUUBBBBBB"
@@ -41,11 +44,12 @@
     {
       "id": "oll-04",
       "name": "OLL 4",
+      "shape": "dot",
       "algos": [
         {
           "id": "oll-04-1",
           "name": "公式一",
-          "algo": "f (R U R' U') f' U F (R U R' U') F'"
+          "algo": "(f R U R' U' f') U (F R U R' U' F')"
         }
       ],
       "facelets": "XXUXUXXXXUUXRRRRRRUUXFFFFFFDDDDDDDDDUUXLLLLLLXUXBBBBBB"
@@ -53,6 +57,7 @@
     {
       "id": "oll-05",
       "name": "OLL 5",
+      "shape": "square",
       "algos": [
         {
           "id": "oll-05-1",
@@ -65,6 +70,7 @@
     {
       "id": "oll-06",
       "name": "OLL 6",
+      "shape": "square",
       "algos": [
         {
           "id": "oll-06-1",
@@ -77,6 +83,7 @@
     {
       "id": "oll-07",
       "name": "OLL 7",
+      "shape": "lightning",
       "algos": [
         {
           "id": "oll-07-1",
@@ -89,6 +96,7 @@
     {
       "id": "oll-08",
       "name": "OLL 8",
+      "shape": "lightning",
       "algos": [
         {
           "id": "oll-08-1",
@@ -101,6 +109,7 @@
     {
       "id": "oll-09",
       "name": "OLL 9",
+      "shape": "fish",
       "algos": [
         {
           "id": "oll-09-1",
@@ -113,6 +122,7 @@
     {
       "id": "oll-10",
       "name": "OLL 10",
+      "shape": "fish",
       "algos": [
         {
           "id": "oll-10-1",
@@ -125,6 +135,7 @@
     {
       "id": "oll-11",
       "name": "OLL 11",
+      "shape": "lightning",
       "algos": [
         {
           "id": "oll-11-1",
@@ -137,6 +148,7 @@
     {
       "id": "oll-12",
       "name": "OLL 12",
+      "shape": "lightning",
       "algos": [
         {
           "id": "oll-12-1",
@@ -149,6 +161,7 @@
     {
       "id": "oll-13",
       "name": "OLL 13",
+      "shape": "knight-move",
       "algos": [
         {
           "id": "oll-13-1",
@@ -161,6 +174,7 @@
     {
       "id": "oll-14",
       "name": "OLL 14",
+      "shape": "knight-move",
       "algos": [
         {
           "id": "oll-14-1",
@@ -173,6 +187,7 @@
     {
       "id": "oll-15",
       "name": "OLL 15",
+      "shape": "knight-move",
       "algos": [
         {
           "id": "oll-15-1",
@@ -185,6 +200,7 @@
     {
       "id": "oll-16",
       "name": "OLL 16",
+      "shape": "knight-move",
       "algos": [
         {
           "id": "oll-16-1",
@@ -197,6 +213,7 @@
     {
       "id": "oll-17",
       "name": "OLL 17",
+      "shape": "dot",
       "algos": [
         {
           "id": "oll-17-1",
@@ -209,6 +226,7 @@
     {
       "id": "oll-18",
       "name": "OLL 18",
+      "shape": "dot",
       "algos": [
         {
           "id": "oll-18-1",
@@ -221,6 +239,7 @@
     {
       "id": "oll-19",
       "name": "OLL 19",
+      "shape": "dot",
       "algos": [
         {
           "id": "oll-19-1",
@@ -233,6 +252,7 @@
     {
       "id": "oll-20",
       "name": "OLL 20",
+      "shape": "dot",
       "algos": [
         {
           "id": "oll-20-1",
@@ -245,6 +265,7 @@
     {
       "id": "oll-21",
       "name": "OLL 21",
+      "shape": "ocll",
       "algos": [
         {
           "id": "oll-21-1",
@@ -268,6 +289,7 @@
     {
       "id": "oll-22",
       "name": "OLL 22",
+      "shape": "ocll",
       "algos": [
         {
           "id": "oll-22-1",
@@ -280,6 +302,7 @@
     {
       "id": "oll-23",
       "name": "OLL 23",
+      "shape": "ocll",
       "algos": [
         {
           "id": "oll-23-1",
@@ -298,6 +321,7 @@
     {
       "id": "oll-24",
       "name": "OLL 24",
+      "shape": "ocll",
       "algos": [
         {
           "id": "oll-24-1",
@@ -310,6 +334,7 @@
     {
       "id": "oll-25",
       "name": "OLL 25",
+      "shape": "ocll",
       "algos": [
         {
           "id": "oll-25-1",
@@ -322,17 +347,18 @@
     {
       "id": "oll-26",
       "name": "OLL 26",
+      "shape": "ocll",
       "algos": [
         {
           "id": "oll-26-1",
           "name": "公式一",
-          "algo": "(R U2 R') U' (R U' R')",
+          "algo": "(R U2 R') (U' R U' R')",
           "facelets": "XUUUUUXUXUXXRRRRRRUXXFFFFFFDDDDDDDDDUXXLLLLLLXXXBBBBBB"
         },
         {
           "id": "oll-26-2",
           "name": "公式二",
-          "algo": "R' U' R U' R' U2 R",
+          "algo": "(R' U' R U') (R' U2 R)",
           "facelets": "UUXUUUXUXUXXRRRRRRUXXFFFFFFDDDDDDDDDXXXLLLLLLUXXBBBBBB"
         }
       ]
@@ -340,17 +366,18 @@
     {
       "id": "oll-27",
       "name": "OLL 27",
+      "shape": "ocll",
       "algos": [
         {
           "id": "oll-27-1",
-          "name": "面向头",
-          "algo": "(R' U2 R) U (R' U R)",
+          "name": "公式一",
+          "algo": "(R' U2 R) (U R' U R)",
           "facelets": "XUXUUUXUUXXURRRRRRXXXFFFFFFDDDDDDDDDXXULLLLLLXXUBBBBBB"
         },
         {
           "id": "oll-27-2",
           "name": "公式二",
-          "algo": "L U L' U L U2 L'",
+          "algo": "(L U L' U) (L U2 L')",
           "facelets": "XUUUUUXUXXXXRRRRRRXXUFFFFFFDDDDDDDDDXXULLLLLLXXUBBBBBB"
         }
       ]
@@ -358,11 +385,12 @@
     {
       "id": "oll-28",
       "name": "OLL 28",
+      "shape": "all-corners-oriented",
       "algos": [
         {
           "id": "oll-28-1",
           "name": "公式一",
-          "algo": "(M' U' M U2' M' U' M)"
+          "algo": "(M' U' M) U2' (M' U' M)"
         }
       ],
       "facelets": "UXUUUXUUUXUXRRRRRRXXXFFFFFFDDDDDDDDDXXXLLLLLLXUXBBBBBB"
@@ -370,6 +398,7 @@
     {
       "id": "oll-29",
       "name": "OLL 29",
+      "shape": "awkward",
       "algos": [
         {
           "id": "oll-29-1",
@@ -382,6 +411,7 @@
     {
       "id": "oll-30",
       "name": "OLL 30",
+      "shape": "awkward",
       "algos": [
         {
           "id": "oll-30-1",
@@ -394,6 +424,7 @@
     {
       "id": "oll-31",
       "name": "OLL 31",
+      "shape": "p",
       "algos": [
         {
           "id": "oll-31-1",
@@ -406,6 +437,7 @@
     {
       "id": "oll-32",
       "name": "OLL 32",
+      "shape": "p",
       "algos": [
         {
           "id": "oll-32-1",
@@ -418,6 +450,7 @@
     {
       "id": "oll-33",
       "name": "OLL 33",
+      "shape": "t",
       "algos": [
         {
           "id": "oll-33-1",
@@ -430,6 +463,7 @@
     {
       "id": "oll-34",
       "name": "OLL 34",
+      "shape": "c",
       "algos": [
         {
           "id": "oll-34-1",
@@ -442,6 +476,7 @@
     {
       "id": "oll-35",
       "name": "OLL 35",
+      "shape": "fish",
       "algos": [
         {
           "id": "oll-35-1",
@@ -454,6 +489,7 @@
     {
       "id": "oll-36",
       "name": "OLL 36",
+      "shape": "w",
       "algos": [
         {
           "id": "oll-36-1",
@@ -466,11 +502,17 @@
     {
       "id": "oll-37",
       "name": "OLL 37",
+      "shape": "fish",
       "algos": [
         {
           "id": "oll-37-1",
           "name": "公式一",
-          "algo": "(F R' F' R U R U' R')"
+          "algo": "(F R' F' R) (U R U' R')"
+        },
+        {
+          "id": "oll-37-2",
+          "name": "公式二",
+          "algo": "(R' F R F') (U' F' U F)"
         }
       ],
       "facelets": "UUXUUXXXUXUURRRRRRUUXFFFFFFDDDDDDDDDXXXLLLLLLXXXBBBBBB"
@@ -478,6 +520,7 @@
     {
       "id": "oll-38",
       "name": "OLL 38",
+      "shape": "w",
       "algos": [
         {
           "id": "oll-38-1",
@@ -490,6 +533,7 @@
     {
       "id": "oll-39",
       "name": "OLL 39",
+      "shape": "lightning",
       "algos": [
         {
           "id": "oll-39-1",
@@ -502,6 +546,7 @@
     {
       "id": "oll-40",
       "name": "OLL 40",
+      "shape": "lightning",
       "algos": [
         {
           "id": "oll-40-1",
@@ -514,6 +559,7 @@
     {
       "id": "oll-41",
       "name": "OLL 41",
+      "shape": "awkward",
       "algos": [
         {
           "id": "oll-41-1",
@@ -526,6 +572,7 @@
     {
       "id": "oll-42",
       "name": "OLL 42",
+      "shape": "awkward",
       "algos": [
         {
           "id": "oll-42-1",
@@ -538,6 +585,7 @@
     {
       "id": "oll-43",
       "name": "OLL 43",
+      "shape": "p",
       "algos": [
         {
           "id": "oll-43-1",
@@ -550,6 +598,7 @@
     {
       "id": "oll-44",
       "name": "OLL 44",
+      "shape": "p",
       "algos": [
         {
           "id": "oll-44-1",
@@ -562,11 +611,12 @@
     {
       "id": "oll-45",
       "name": "OLL 45",
+      "shape": "t",
       "algos": [
         {
           "id": "oll-45-1",
           "name": "公式一",
-          "algo": "F (R U R' U') F'"
+          "algo": "(F R U R' U' F')"
         }
       ],
       "facelets": "XXUUUUXXUXXXRRRRRRXUXFFFFFFDDDDDDDDDUXULLLLLLXUXBBBBBB"
@@ -574,6 +624,7 @@
     {
       "id": "oll-46",
       "name": "OLL 46",
+      "shape": "c",
       "algos": [
         {
           "id": "oll-46-1",
@@ -586,6 +637,7 @@
     {
       "id": "oll-47",
       "name": "OLL 47",
+      "shape": "l",
       "algos": [
         {
           "id": "oll-47-1",
@@ -598,6 +650,7 @@
     {
       "id": "oll-48",
       "name": "OLL 48",
+      "shape": "l",
       "algos": [
         {
           "id": "oll-48-1",
@@ -610,6 +663,7 @@
     {
       "id": "oll-49",
       "name": "OLL 49",
+      "shape": "l",
       "algos": [
         {
           "id": "oll-49-1",
@@ -622,6 +676,7 @@
     {
       "id": "oll-50",
       "name": "OLL 50",
+      "shape": "l",
       "algos": [
         {
           "id": "oll-50-1",
@@ -634,6 +689,7 @@
     {
       "id": "oll-51",
       "name": "OLL 51",
+      "shape": "line",
       "algos": [
         {
           "id": "oll-51-1",
@@ -646,6 +702,7 @@
     {
       "id": "oll-52",
       "name": "OLL 52",
+      "shape": "line",
       "algos": [
         {
           "id": "oll-52-1",
@@ -658,6 +715,7 @@
     {
       "id": "oll-53",
       "name": "OLL 53",
+      "shape": "l",
       "algos": [
         {
           "id": "oll-53-1",
@@ -670,6 +728,7 @@
     {
       "id": "oll-54",
       "name": "OLL 54",
+      "shape": "l",
       "algos": [
         {
           "id": "oll-54-1",
@@ -682,6 +741,7 @@
     {
       "id": "oll-55",
       "name": "OLL 55",
+      "shape": "line",
       "algos": [
         {
           "id": "oll-55-1",
@@ -694,6 +754,7 @@
     {
       "id": "oll-56",
       "name": "OLL 56",
+      "shape": "line",
       "algos": [
         {
           "id": "oll-56-1",
@@ -706,6 +767,7 @@
     {
       "id": "oll-57",
       "name": "OLL 57",
+      "shape": "all-corners-oriented",
       "algos": [
         {
           "id": "oll-57-1",

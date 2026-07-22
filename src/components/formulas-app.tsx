@@ -31,7 +31,14 @@ import {
 } from "@/lib/algorithms";
 import { getFaceColors, type CubeColor, type CubeOrientation } from "@/lib/cube-appearance";
 import { normalizeFormulaRotationOffset, rotateAlgorithmByYOffset, rotateFaceletsByYOffset, type FormulaRotationOffset } from "@/lib/formula-rotation";
-import { FORMULAS, type FormulaArrow, type FormulaItem, type FormulaVariant as FormulaVariantData } from "@/lib/formulas-data";
+import {
+  FORMULAS,
+  OLL_SHAPES,
+  type FormulaArrow,
+  type FormulaItem,
+  type FormulaVariant as FormulaVariantData,
+  type OllShape,
+} from "@/lib/formulas-data";
 import { fmtShort } from "@/lib/format";
 import {
   DEFAULT_AVERAGE_TIME_SETTINGS,
@@ -68,6 +75,7 @@ type FormulaCaseItem = FormulaItem & {
 type PracticeStatus = "pending" | "partial" | "correct" | "wrong";
 type LearningStatus = "unpracticed" | "learning" | "mastered";
 type LearningStatusFilter = "all" | LearningStatus;
+type OllShapeFilter = "all" | OllShape;
 type FormulaTip = {
   title: string;
   sourceName: string;
@@ -90,6 +98,15 @@ const FORMULA_TOAST_FADE_MS = 260;
 const FORMULA_STATS_ROW_SIZE = 25;
 const FORMULA_STATS_ROW_GAP = 10;
 const FORMULA_STATS_FALLBACK_ROWS = 1;
+const TRIGGER_NAME_BY_ALGORITHM = new Map(
+  FORMULAS.triggers.items.flatMap((item) => {
+    const algorithms = [
+      ...(item.algo ? [item.algo] : []),
+      ...(item.algos?.map((variant) => variant.algo) ?? []),
+    ];
+    return algorithms.map((algorithm) => [parseAlgorithm(algorithm).join("\u0000"), item.name] as const);
+  }),
+);
 const FORMULA_TOP_VIEW_COLOR_HEX: Record<CubeColor, string> = {
   white: "#FFFFFF",
   yellow: "#F4F400",
@@ -113,6 +130,23 @@ const STATUS_FILTERS: Array<{ key: LearningStatusFilter; label: string }> = [
   { key: "all", label: "全部" },
   ...LEARNING_STATUSES.map(({ key, label }) => ({ key, label })),
 ];
+const OLL_SHAPE_LABELS: Record<OllShape, string> = {
+  "all-corners-oriented": "formula.shape.allCornersOriented",
+  awkward: "formula.shape.awkward",
+  c: "formula.shape.c",
+  dot: "formula.shape.dot",
+  fish: "formula.shape.fish",
+  "knight-move": "formula.shape.knightMove",
+  l: "formula.shape.l",
+  lightning: "formula.shape.lightning",
+  line: "formula.shape.line",
+  ocll: "formula.shape.ocll",
+  p: "formula.shape.p",
+  square: "formula.shape.square",
+  t: "formula.shape.t",
+  w: "formula.shape.w",
+};
+const OLL_SHAPE_OPTIONS: readonly OllShapeFilter[] = ["all", ...OLL_SHAPES];
 const FORMULA_ROTATION_SUFFIX: Record<Exclude<FormulaRotationOffset, 0>, string> = {
   1: "@view-y",
   2: "@view-y2",
@@ -125,6 +159,69 @@ type FormulaStats = {
   todayKey?: string;
   todayCount?: number;
 };
+
+function OllShapeSelectField({
+  id,
+  selected,
+  onSelect,
+}: {
+  id: string;
+  selected: OllShapeFilter;
+  onSelect(shape: OllShapeFilter): void;
+}) {
+  const { t } = useLanguage();
+  const [isOpen, setIsOpen] = useState(false);
+  const selectedLabel = selected === "all" ? "formula.shape.all" : OLL_SHAPE_LABELS[selected];
+
+  function handleSelect(shape: OllShapeFilter) {
+    onSelect(shape);
+    setIsOpen(false);
+  }
+
+  return (
+    <div
+      className={`fm-shape-select-wrap${isOpen ? " open" : ""}`}
+      onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget)) setIsOpen(false);
+      }}
+    >
+      <button
+        id={id}
+        type="button"
+        className="fm-shape-select-trigger"
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
+        aria-controls={`${id}-menu`}
+        onClick={() => setIsOpen((current) => !current)}
+        onKeyDown={(event) => {
+          if (event.key === "Escape") setIsOpen(false);
+        }}
+      >
+        <span className="fm-shape-select-label">{t(selectedLabel)}</span>
+      </button>
+      {isOpen && (
+        <div id={`${id}-menu`} className="fm-shape-select-menu" role="listbox" aria-labelledby={id}>
+          {OLL_SHAPE_OPTIONS.map((shape) => {
+            const isSelected = selected === shape;
+            const label = shape === "all" ? "formula.shape.all" : OLL_SHAPE_LABELS[shape];
+            return (
+              <button
+                key={shape}
+                type="button"
+                className={`fm-shape-select-option${isSelected ? " selected" : ""}`}
+                role="option"
+                aria-selected={isSelected}
+                onClick={() => handleSelect(shape)}
+              >
+                {t(label)}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
 
 function isLearningStatus(value: unknown): value is LearningStatus {
   return value === "unpracticed" || value === "learning" || value === "mastered";
@@ -509,14 +606,17 @@ function FormulaDescription({ description }: { description?: string }) {
 }
 
 function groupAlgorithmRows(algo: string) {
-  const rows: Array<Array<{ move: string; index: number }>> = [];
+  const rows: Array<{
+    moves: Array<{ move: string; index: number }>;
+    isParenthesized: boolean;
+  }> = [];
   let current: Array<{ move: string; index: number }> = [];
   let moveIndex = 0;
   let inGroup = false;
 
   function pushCurrent() {
     if (current.length === 0) return;
-    rows.push(current);
+    rows.push({ moves: current, isParenthesized: inGroup });
     current = [];
   }
 
@@ -546,7 +646,16 @@ function groupAlgorithmRows(algo: string) {
     });
 
   pushCurrent();
-  return rows;
+  return rows.map((row) => ({
+    ...row,
+    triggerName: row.isParenthesized
+      ? TRIGGER_NAME_BY_ALGORITHM.get(
+          row.moves
+            .map(({ move }) => parseMoveNotation(move)?.notation ?? move)
+            .join("\u0000"),
+        )
+      : undefined,
+  }));
 }
 
 function FormulaStage({
@@ -1344,7 +1453,6 @@ function FormulaStage({
               <div className="formula-hero-title">
                 <h2>
                   <span>{formulaTitle}</span>
-                  <FormulaDescription description={active.description} />
                 </h2>
                 <b>{displayedMoveCount} MOVES</b>
               </div>
@@ -1415,7 +1523,7 @@ function FormulaStage({
             <div className="algo-display">
               {algoRows.map((row, rowIndex) => (
                 <div key={`row-${rowIndex}`} className="algo-row">
-                  {row.map(({ move, index }) => (
+                  {row.moves.map(({ move, index }) => (
                     <AlgorithmStepToken
                       key={`${move}-${index}`}
                       move={move}
@@ -1424,6 +1532,9 @@ function FormulaStage({
                       active={!playbackActive && practiceActive && index === practiceIndex}
                     />
                   ))}
+                  {active.sourceCat !== "triggers" && row.triggerName && (
+                    <span className="algo-trigger-name">{t(row.triggerName)}</span>
+                  )}
                 </div>
               ))}
             </div>
@@ -1569,6 +1680,7 @@ export function FormulasApp() {
   const [learningStatuses, setLearningStatuses] = useState<Record<string, LearningStatus>>({});
   const [averageSettings, setAverageSettings] = useState<AverageTimeSettings>(DEFAULT_AVERAGE_TIME_SETTINGS);
   const [statusFilter, setStatusFilter] = useState<LearningStatusFilter>(initialFormulaState.statusFilter);
+  const [ollShapeFilter, setOllShapeFilter] = useState<OllShapeFilter>("all");
   const [showFavOnly, setShowFavOnly] = useState(initialFormulaState.showFavOnly);
   const [formulaTip, setFormulaTip] = useState<FormulaTip | null>(null);
   const [expandedCaseIds, setExpandedCaseIds] = useState<Set<string>>(() => new Set());
@@ -1622,6 +1734,7 @@ export function FormulasApp() {
       setActiveKey(saved.activeKey);
       setShowFavOnly(saved.showFavOnly);
       setStatusFilter(saved.statusFilter);
+      setOllShapeFilter("all");
       setFilter("");
       setFormulaTip(null);
       setExpandedCaseIds(new Set());
@@ -1675,6 +1788,7 @@ export function FormulasApp() {
     const firstVariant = nextItems[0]?.variants[0];
     if (firstVariant) setActiveKey(firstVariant.key);
     setFilter("");
+    setOllShapeFilter("all");
     if (nextCat === "favorites") setShowFavOnly(false);
   }
 
@@ -1692,6 +1806,9 @@ export function FormulasApp() {
           variants: item.variants.filter((variant) => getLearningStatus(learningStatuses, variant.key) === statusFilter),
         }))
         .filter((item) => item.variants.length > 0);
+    }
+    if (cat === "oll" && ollShapeFilter !== "all") {
+      list = list.filter((item) => item.shape === ollShapeFilter);
     }
     if (filter.trim()) {
       const query = filter.toLowerCase();
@@ -1711,7 +1828,7 @@ export function FormulasApp() {
         .filter((item) => item.variants.length > 0);
     }
     return list;
-  }, [catData.items, favs, filter, learningStatuses, showFavOnly, statusFilter]);
+  }, [cat, catData.items, favs, filter, learningStatuses, ollShapeFilter, showFavOnly, statusFilter]);
 
   const visibleFormulaVariants = useMemo(() => items.flatMap((item) => item.variants), [items]);
 
@@ -1860,6 +1977,16 @@ export function FormulasApp() {
               </button>
             ))}
           </div>
+          {cat === "oll" && (
+            <div className="fm-shape-filter">
+              <label htmlFor="oll-shape-filter">{t("formula.shape.label")}</label>
+              <OllShapeSelectField
+                id="oll-shape-filter"
+                selected={ollShapeFilter}
+                onSelect={setOllShapeFilter}
+              />
+            </div>
+          )}
           <div className="fm-list">
             {items.length === 0 ? (
               <div className="fm-empty">{emptyMessage}</div>

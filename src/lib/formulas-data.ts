@@ -7,6 +7,7 @@ import triggerFormulas from "@/data/formulas/triggers.json";
 type RawFormulaItem = {
   id?: unknown;
   name?: unknown;
+  shape?: unknown;
   description?: unknown;
   algo?: unknown;
   algos?: unknown;
@@ -32,6 +33,7 @@ type RawFormulaCategory = {
 export type FormulaItem = {
   id: string;
   name: string;
+  shape?: OllShape;
   description?: string;
   algo?: string;
   algos?: FormulaVariant[];
@@ -39,6 +41,29 @@ export type FormulaItem = {
   facelets?: string;
   arrows?: FormulaArrow[];
 };
+
+export const OLL_SHAPES = [
+  "all-corners-oriented",
+  "awkward",
+  "c",
+  "dot",
+  "fish",
+  "knight-move",
+  "l",
+  "lightning",
+  "line",
+  "ocll",
+  "p",
+  "square",
+  "t",
+  "w",
+] as const;
+
+export type OllShape = (typeof OLL_SHAPES)[number];
+
+function isOllShape(value: unknown): value is OllShape {
+  return typeof value === "string" && OLL_SHAPES.some((shape) => shape === value);
+}
 
 export type FormulaArrow = {
   from: number;
@@ -146,6 +171,7 @@ function normalizeItem(raw: unknown, index: number): FormulaItem | null {
   return {
     id,
     name,
+    ...(isOllShape(item.shape) ? { shape: item.shape } : {}),
     ...(typeof item.description === "string" && item.description ? { description: item.description } : {}),
     ...(typeof item.algo === "string" ? { algo: item.algo } : {}),
     ...(algos && algos.length > 0 ? { algos } : {}),

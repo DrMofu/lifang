@@ -1,6 +1,7 @@
 "use client";
 
 import { type CSSProperties, type FocusEvent, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCubeConnection } from "@/components/cube-connection-provider";
@@ -340,11 +341,36 @@ export function CompactConnectButton() {
           <BatteryIndicator level={null} />
         </button>
       )}
-      {connectionPromptVisible && (
-        <div className="top-connect-prompt" id="top-connect-prompt" role="status">
-          <div className="top-connect-prompt-title">{t("connection.wakeHint")}</div>
-          <div className="top-connect-prompt-note">{t("connection.ganOnly")}</div>
-        </div>
+      {connectionPromptVisible && typeof document !== "undefined" && createPortal(
+        <>
+          <div className="top-connect-prompt-backdrop" aria-hidden="true" />
+          <div
+            className="top-connect-prompt"
+            id="top-connect-prompt"
+            role="status"
+            aria-live="polite"
+          >
+            <div className="top-connect-prompt-head">
+              <div className="top-connect-prompt-visual" aria-hidden="true">
+                <img src="/li-fang-logo.png" alt="" />
+              </div>
+              <div>
+                <div className="top-connect-prompt-title">{t("connection.pairingTitle")}</div>
+                <div className="top-connect-prompt-intro">{t("connection.pairingIntro")}</div>
+              </div>
+            </div>
+            <ol className="top-connect-prompt-steps">
+              <li>{t("connection.pairingStepWake")}</li>
+              <li>{t("connection.pairingStepSelect")}</li>
+              <li>{t("connection.pairingStepWait")}</li>
+            </ol>
+            <div className="top-connect-prompt-note">
+              <span className="dot dot-pulse" aria-hidden="true" />
+              {t("connection.ganOnly")}
+            </div>
+          </div>
+        </>,
+        document.body,
       )}
       <div className="top-connect-tooltip" id="top-connect-detail" role="tooltip" aria-hidden={!tooltipOpen}>
         <div className="top-connect-grid">

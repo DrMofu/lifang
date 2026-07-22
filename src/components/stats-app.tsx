@@ -2,9 +2,11 @@
 
 import { Fragment, useEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from "react";
 import { createPortal } from "react-dom";
+import Link from "next/link";
 import { AppFooter, AppTopbar } from "@/components/app-shell";
 import { useLanguage } from "@/components/language-provider";
 import {
+  DEFAULT_AVERAGE_TIME_SETTINGS,
   loadAverageTimeSettings,
   type AverageTimeSettings,
 } from "@/lib/average-time";
@@ -118,7 +120,6 @@ type DailyLevelTip = {
 type DailyLevelSummary = {
   rows: DailyLevelEntry[];
   today: DailyLevelEntry | null;
-  slowest: number;
   bestEntry: DailyLevelEntry | null;
   trend: {
     entries: DailyLevelEntry[];
@@ -544,7 +545,6 @@ function summarizeDailyLevels(dailyLevels: DailyLevelEntry[], todayLocalDate: st
   const points: number[] = [];
   let min = 0;
   let max = 0;
-  let slowest = 0;
   let today: DailyLevelEntry | null = null;
   let bestEntry: DailyLevelEntry | null = null;
 
@@ -557,7 +557,6 @@ function summarizeDailyLevels(dailyLevels: DailyLevelEntry[], todayLocalDate: st
       min = Math.min(min, entry.averageMs);
       max = Math.max(max, entry.averageMs);
     }
-    slowest = Math.max(slowest, entry.averageMs);
     if (entry.localDate === todayLocalDate) today = entry;
     if (!bestEntry || entry.averageMs < bestEntry.averageMs) bestEntry = entry;
   });
@@ -565,7 +564,6 @@ function summarizeDailyLevels(dailyLevels: DailyLevelEntry[], todayLocalDate: st
   return {
     rows: entries.toReversed(),
     today,
-    slowest,
     bestEntry,
     trend: { entries, points, min, max },
   };
@@ -573,19 +571,23 @@ function summarizeDailyLevels(dailyLevels: DailyLevelEntry[], todayLocalDate: st
 
 export function StatsApp() {
   const { t } = useLanguage();
-  const [history, setHistory] = useState<SolveHistoryEntry[]>(loadSolveHistory);
-  const [dailyLevels, setDailyLevels] = useState<DailyLevelEntry[]>(loadDailyLevels);
-  const [dailyPractice, setDailyPractice] = useState<DailyPracticeEntry[]>(loadDailyPracticeSecondsWithPendingSession);
+  const [history, setHistory] = useState<SolveHistoryEntry[]>([]);
+  const [dailyLevels, setDailyLevels] = useState<DailyLevelEntry[]>([]);
+  const [dailyPractice, setDailyPractice] = useState<DailyPracticeEntry[]>([]);
   const [cfopAverageSize, setCfopAverageSize] = useState<CfopAverageSize>(5);
   const [trendMetric, setTrendMetric] = useState<TrendMetric>("time");
   const [trendPhaseFilter, setTrendPhaseFilter] = useState<TrendPhaseFilter>("all");
   const [trendRange, setTrendRange] = useState<TrendRangeFilter>("all");
-  const [averageSettings, setAverageSettings] = useState<AverageTimeSettings>(loadAverageTimeSettings);
+  const [averageSettings, setAverageSettings] = useState<AverageTimeSettings>(DEFAULT_AVERAGE_TIME_SETTINGS);
   const [trendCfopTip, setTrendCfopTip] = useState<TrendCfopTip | null>(null);
   const [trendGuideIndex, setTrendGuideIndex] = useState<number | null>(null);
+  const dailyLevelChartRef = useRef<SVGSVGElement | null>(null);
+  const [dailyLevelChartWidth, setDailyLevelChartWidth] = useState(960);
   const [openTrendDropdown, setOpenTrendDropdown] = useState<"metric" | "phase" | "range" | null>(null);
   const [heatmapTip, setHeatmapTip] = useState<HeatmapTip | null>(null);
   const [dailyLevelTip, setDailyLevelTip] = useState<DailyLevelTip | null>(null);
+  const [isDailyHistoryOpen, setIsDailyHistoryOpen] = useState(false);
+  const dailyHistoryCloseRef = useRef<HTMLButtonElement | null>(null);
   const [portalReady, setPortalReady] = useState(false);
 
   useEffect(() => {
@@ -775,6 +777,9 @@ export function StatsApp() {
         f2lDuration: null,
         ollDuration: null,
         pllDuration: null,
+        best: null,
+        worst: null,
+        change: null,
         count: entries.length,
         target: cfopAverageSize,
       };
@@ -798,6 +803,11 @@ export function StatsApp() {
     const ollDuration = avgDurationPhase("oll");
     const pllDuration = avgDurationPhase("pll");
     const avg = avgTrim(entries.map((entry) => entry.ms)) ?? 0;
+    const scores = entries.map((entry) => entry.ms);
+    const previousEntries = allEntries.slice(cfopAverageSize, cfopAverageSize * 2);
+    const previousAverage = previousEntries.length === cfopAverageSize
+      ? avgTrim(previousEntries.map((entry) => entry.ms))
+      : null;
     const phaseTotal = [crossDuration, f2lDuration, ollDuration, pllDuration].reduce<number>((sum, value) => sum + (value ?? 0), 0);
     return {
       avg,
@@ -810,6 +820,9 @@ export function StatsApp() {
       f2lDuration,
       ollDuration,
       pllDuration,
+      best: Math.min(...scores),
+      worst: Math.max(...scores),
+      change: previousAverage == null ? null : avg - previousAverage,
       count: entries.length,
       target: cfopAverageSize,
     };
@@ -835,10 +848,29 @@ export function StatsApp() {
       f2lDuration,
       ollDuration,
       pllDuration,
+      best: activeEntry.ms,
+      worst: activeEntry.ms,
+      change: null,
       count: 1,
       target: 1,
     };
   }, [cfopBreakdown, trendCfopTip]);
+
+  const activeCfopPhases = [
+    { key: "cross", name: "Cross", value: activeCfopBreakdown.crossDuration, color: "#F2C744" },
+    { key: "f2l", name: "F2L", value: activeCfopBreakdown.f2lDuration, color: "#1F6B3A" },
+    { key: "oll", name: "OLL", value: activeCfopBreakdown.ollDuration, color: "#1F4FB6" },
+    { key: "pll", name: "PLL", value: activeCfopBreakdown.pllDuration, color: "#C9352A" },
+  ];
+  const dominantCfopPhase = activeCfopPhases.reduce((dominant, phase) => (
+    (phase.value ?? 0) > (dominant.value ?? 0) ? phase : dominant
+  ), activeCfopPhases[0]);
+  const cfopBarTotal = Math.max(activeCfopBreakdown.avg, activeCfopBreakdown.phaseTotal, 1);
+  const cfopRangePosition = activeCfopBreakdown.best != null
+    && activeCfopBreakdown.worst != null
+    && activeCfopBreakdown.worst > activeCfopBreakdown.best
+    ? Math.min(100, Math.max(0, ((activeCfopBreakdown.avg - activeCfopBreakdown.best) / (activeCfopBreakdown.worst - activeCfopBreakdown.best)) * 100))
+    : 50;
 
   const todayLocalDate = getDailyTestDateKey();
   const dailyLevelSummary = useMemo(
@@ -847,10 +879,24 @@ export function StatsApp() {
   );
   const todayDailyLevel = dailyLevelSummary.today;
   const dailyLevelRows = dailyLevelSummary.rows;
-  const slowestDailyLevel = dailyLevelSummary.slowest;
-  const bestDailyLevelEntry = dailyLevelSummary.bestEntry;
-  const bestDailyLevel = bestDailyLevelEntry?.averageMs ?? null;
+  const bestDailyLevel = dailyLevelSummary.bestEntry?.averageMs ?? null;
   const dailyLevelTrend = dailyLevelSummary.trend;
+  const recentDailyLevels = dailyLevelRows.slice(0, 5);
+  const recentSevenDailyAverage = dailyLevelRows.length === 0
+    ? null
+    : dailyLevelRows.slice(0, 7).reduce((sum, entry) => sum + entry.averageMs, 0) / Math.min(7, dailyLevelRows.length);
+  useEffect(() => {
+    const svg = dailyLevelChartRef.current;
+    if (!svg) return;
+    const updateWidth = () => {
+      const nextWidth = Math.max(320, Math.round(svg.getBoundingClientRect().width));
+      setDailyLevelChartWidth((current) => current === nextWidth ? current : nextWidth);
+    };
+    updateWidth();
+    const observer = new ResizeObserver(updateWidth);
+    observer.observe(svg);
+    return () => observer.disconnect();
+  }, [dailyLevelTrend.points.length]);
 
   useEffect(() => {
     if (!dailyLevelTip) return;
@@ -858,27 +904,13 @@ export function StatsApp() {
     function refreshDailyLevelTipPosition() {
       setDailyLevelTip((current) => {
         if (!current) return current;
-        const svg = document.querySelector<SVGSVGElement>(".daily-level-svg");
         const index = dailyLevelTrend.entries.findIndex((entry, entryIndex) => current.pointKey === `${entry.id}-${entryIndex}`);
         const entry = dailyLevelTrend.entries[index];
-        const value = dailyLevelTrend.points[index];
-        if (!svg || !entry || typeof value !== "number") return current;
-        const W = 520;
-        const H = 262;
-        const padX = 10;
-        const padTop = 10;
-        const padBot = 10;
-        const range = Math.max(1, dailyLevelTrend.max - dailyLevelTrend.min);
-        const chartW = W - padX * 2;
-        const chartH = H - padTop - padBot;
-        const rect = svg.getBoundingClientRect();
-        const scale = Math.min(rect.width / W, rect.height / H);
-        const viewLeft = rect.left + (rect.width - W * scale) / 2;
-        const viewTop = rect.top + (rect.height - H * scale) / 2;
-        const x = padX + chartW * (dailyLevelTrend.points.length === 1 ? 0.5 : index / (dailyLevelTrend.points.length - 1));
-        const y = padTop + chartH * (1 - (value - dailyLevelTrend.min) / range);
-        const anchorX = viewLeft + x * scale;
-        const anchorY = viewTop + y * scale;
+        const target = document.querySelector<SVGCircleElement>(`.daily-level-hit-point[data-point-index="${index}"]`);
+        if (!entry || !target) return current;
+        const rect = target.getBoundingClientRect();
+        const anchorX = rect.left + rect.width / 2;
+        const anchorY = rect.top + rect.height / 2;
         const maxLeft = window.innerWidth - DL_TIP_WIDTH - DL_TIP_MARGIN;
         const maxTop = window.innerHeight - DL_TIP_HEIGHT - DL_TIP_MARGIN;
         const placement = anchorY > DL_TIP_HEIGHT + DL_TIP_GAP + DL_TIP_MARGIN ? "above" : "below";
@@ -908,6 +940,23 @@ export function StatsApp() {
       window.removeEventListener("resize", refreshDailyLevelTipPosition);
     };
   }, [dailyLevelTip, dailyLevelTrend]);
+
+  useEffect(() => {
+    if (!isDailyHistoryOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    dailyHistoryCloseRef.current?.focus();
+
+    function closeDailyHistoryOnEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") setIsDailyHistoryOpen(false);
+    }
+
+    window.addEventListener("keydown", closeDailyHistoryOnEscape);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", closeDailyHistoryOnEscape);
+    };
+  }, [isDailyHistoryOpen]);
 
   function showTrendCfopTipAt(
     entry: SolveHistoryEntry,
@@ -1055,12 +1104,12 @@ export function StatsApp() {
       >
         <defs>
           <linearGradient id="trendStableScoreGradient" x1={padLeft} x2={width - padRight} y1="0" y2="0" gradientUnits="userSpaceOnUse">
-            <stop offset="0%" stopColor="#67a2ff" />
-            <stop offset="54%" stopColor="#2f6ff2" />
+            <stop offset="0%" stopColor="#78aaff" />
+            <stop offset="54%" stopColor="#3475f6" />
             <stop offset="100%" stopColor="#1f5de0" />
           </linearGradient>
           <filter id="trendLineGlow" x="-10%" y="-30%" width="120%" height="160%">
-            <feDropShadow dx="0" dy="4" stdDeviation="4" floodColor="#2f6ff2" floodOpacity="0.2" />
+            <feDropShadow dx="0" dy="4" stdDeviation="4" floodColor="#2f6ff2" floodOpacity="0.18" />
           </filter>
         </defs>
         {yTicks.map((tick) => (
@@ -1124,7 +1173,7 @@ export function StatsApp() {
             d={stableScorePath}
             fill="none"
             stroke="url(#trendStableScoreGradient)"
-            strokeWidth="3.2"
+            strokeWidth="3.5"
             strokeLinecap="round"
             strokeLinejoin="round"
             filter="url(#trendLineGlow)"
@@ -1157,7 +1206,7 @@ export function StatsApp() {
           const pointKey = `${entry.ts}-${index}`;
           const isActive = trendCfopTip?.pointKey === pointKey;
           const isBest = showTrendPb && best != null && value === best;
-          const pointColor = isBest ? "#C9352A" : "#0E0E0C";
+          const pointColor = isBest ? "#C9352A" : "#8291A8";
           return (
             <g key={pointKey} className={`trend-point-group${isActive ? " active" : ""}`}>
               {isActive && (
@@ -1169,7 +1218,7 @@ export function StatsApp() {
                   fill={pointColor}
                 />
               )}
-              <circle cx={x(index)} cy={y(value)} r={isBest ? "3.2" : "2.2"} fill={pointColor} opacity={isBest ? "0.9" : "0.42"} />
+              <circle cx={x(index)} cy={y(value)} r={isBest ? "3.3" : "2.15"} fill={pointColor} opacity={isBest ? "0.92" : "0.5"} />
               <circle
                 className="trend-hit-point"
                 cx={x(index)}
@@ -1196,16 +1245,23 @@ export function StatsApp() {
     );
   };
 
-  const DailyLevelChart = () => {
-    const W = 520, H = 262;
-    const padX = 10, padTop = 10, padBot = 10;
+  const renderDailyLevelChart = () => {
+    const W = dailyLevelChartWidth, H = 262;
+    const padLeft = 48, padRight = 20, padTop = 16, padBot = 32;
     const { entries, points, min, max } = dailyLevelTrend;
+
     if (points.length === 0) return <div className="chart-empty">{t("暂无每日测试数据")}</div>;
-    const range = Math.max(1, max - min);
-    const chartW = W - padX * 2;
+    const rawRange = Math.max(1, max - min);
+    const domainPadding = Math.max(500, rawRange * 0.12);
+    const domainMin = Math.max(0, min - domainPadding);
+    const domainMax = max + domainPadding;
+    const range = Math.max(1, domainMax - domainMin);
+    const chartW = W - padLeft - padRight;
     const chartH = H - padTop - padBot;
-    const xv = (i: number) => padX + chartW * (points.length === 1 ? 0.5 : i / (points.length - 1));
-    const yv = (v: number) => padTop + chartH * (1 - (v - min) / range);
+    const xv = (i: number) => padLeft + chartW * (points.length === 1 ? 0.5 : i / (points.length - 1));
+    const yv = (v: number) => padTop + chartH * (1 - (v - domainMin) / range);
+    const yTicks = [domainMax, domainMin + range / 2, domainMin];
+    const xTickIndexes = sampledTickIndexes(points.length, 6);
 
     const coords = points.map((v, i) => ({ x: xv(i), y: yv(v) }));
     const linePath = createMonotoneCubicPath(coords);
@@ -1233,13 +1289,14 @@ export function StatsApp() {
       const scale = Math.min(rect.width / W, rect.height / H);
       const viewLeft = rect.left + (rect.width - W * scale) / 2;
       const svgX = (event.clientX - viewLeft) / Math.max(0.001, scale);
-      const rawIndex = points.length === 1 ? 0 : ((svgX - padX) / (W - padX * 2)) * (points.length - 1);
+      const rawIndex = points.length === 1 ? 0 : ((svgX - padLeft) / chartW) * (points.length - 1);
       const index = Math.min(points.length - 1, Math.max(0, Math.round(rawIndex)));
       activateDlPoint(index, event.currentTarget);
     }
 
     return (
       <svg
+        ref={dailyLevelChartRef}
         viewBox={`0 0 ${W} ${H}`}
         className="daily-level-svg"
         role="img"
@@ -1256,26 +1313,25 @@ export function StatsApp() {
           </linearGradient>
         </defs>
 
-        {/* 水平参考线 */}
-        {[0, 0.5, 1].map((frac, i) => (
-          <line
-            key={frac}
-            x1={padX} y1={padTop + chartH * frac}
-            x2={W - padX} y2={padTop + chartH * frac}
-            stroke="rgba(47,111,242,0.1)"
-            strokeWidth="1"
-            strokeDasharray={i === 1 ? "3 5" : undefined}
-          />
+        {yTicks.map((tick) => (
+          <g key={tick}>
+            <line x1={padLeft} y1={yv(tick)} x2={W - padRight} y2={yv(tick)} stroke="rgba(47,111,242,0.1)" strokeWidth="1" strokeDasharray="3 7" />
+            <text x={padLeft - 10} y={yv(tick)} fill="rgba(104,122,154,0.82)" fontFamily="JetBrains Mono" fontSize="9" fontWeight="800" textAnchor="end" dominantBaseline="middle">
+              {fmtStatsTime(tick)}
+            </text>
+          </g>
         ))}
 
-        {/* 面积填充 */}
-        <path d={areaPath} fill="url(#dailyLevelArea)" />
+        {xTickIndexes.map((index) => (
+          <text key={entries[index].id} x={xv(index)} y={H - 8} fill="rgba(104,122,154,0.82)" fontFamily="JetBrains Mono" fontSize="9" fontWeight="800" textAnchor="middle">
+            {entries[index].localDate.slice(5)}
+          </text>
+        ))}
 
-        {/* 主折线 */}
+        <path d={areaPath} fill="url(#dailyLevelArea)" />
         <path d={linePath} fill="none" stroke="#2f6ff2" strokeWidth="2.2"
           strokeLinecap="round" strokeLinejoin="round" />
 
-        {/* 悬停垂直虚线（在数据点之下渲染，避免遮挡） */}
         {activeDlIndex >= 0 && (
           <line
             className="dl-snap-line"
@@ -1284,7 +1340,6 @@ export function StatsApp() {
           />
         )}
 
-        {/* 数据点 */}
         {points.map((value, index) => {
           const isBest = value === bestDailyLevel;
           const isActive = index === activeDlIndex;
@@ -1292,6 +1347,17 @@ export function StatsApp() {
           const cy = yv(value);
           return (
             <g key={`${entries[index]?.id ?? index}`}>
+              <circle
+                className="daily-level-hit-point"
+                data-point-index={index}
+                cx={cx}
+                cy={cy}
+                r="11"
+                fill="transparent"
+                tabIndex={0}
+                onFocus={(event) => activateDlPoint(index, event.currentTarget.ownerSVGElement!)}
+                onBlur={() => setDailyLevelTip(null)}
+              />
               {isActive && (
                 <circle cx={cx} cy={cy} r={isBest ? 9 : 8}
                   fill={isBest ? "rgba(201,53,42,0.26)" : "rgba(47,111,242,0.22)"} />
@@ -1307,7 +1373,6 @@ export function StatsApp() {
             </g>
           );
         })}
-
       </svg>
     );
   };
@@ -1346,7 +1411,7 @@ export function StatsApp() {
           aria-haspopup="menu"
           aria-expanded={open}
           aria-label={label}
-          onClick={() => setOpenTrendDropdown((current) => (current === id ? null : id))}
+          onClick={() => setOpenTrendDropdown(id)}
         >
           <span>{t(activeOption.label)}</span>
           <i aria-hidden="true"></i>
@@ -1408,49 +1473,72 @@ export function StatsApp() {
             </div>
           </div>
           <div
-            className="st-card st-daily-level st-daily-level-side"
+            className="st-card st-daily-level"
             onPointerLeave={() => setDailyLevelTip(null)}
             onMouseLeave={() => setDailyLevelTip(null)}
           >
-            <div className="st-card-head">
-              <div>
+            <div className="st-daily-level-head">
+              <div className="st-daily-title-block">
                 <div className="st-ch-kicker">— DAILY LEVEL</div>
                 <div className="st-ch-title">{t("每日能力水平")}</div>
               </div>
-              <div className="st-legend">
-                <span>{dailyLevels.length ? t(`${dailyLevels.length} 天测试`) : t("暂无测试数据")}</span>
+              {todayDailyLevel ? (
+                <div className="dl-today-result">
+                  <span>{t("今日成绩")}</span>
+                  <b>{fmtStatsTime(todayDailyLevel.averageMs)}</b>
+                </div>
+              ) : (
+                <Link className="dl-start-link dl-title-start-link" href="/practice">
+                  {t("开始今日测试")}
+                </Link>
+              )}
+              <div className="dl-head-summary">
+                <div className="dl-head-metric">
+                  <span>{t("历史最佳")}</span>
+                  <b>{fmtStatsTime(bestDailyLevel)}</b>
+                </div>
+                <div className="dl-head-metric">
+                  <span>{t("近 7 次平均")}</span>
+                  <b>{fmtStatsTime(recentSevenDailyAverage)}</b>
+                </div>
               </div>
+              <button
+                type="button"
+                className="dl-history-open"
+                aria-haspopup="dialog"
+                aria-expanded={isDailyHistoryOpen}
+                onClick={() => setIsDailyHistoryOpen(true)}
+              >
+                {t("查看全部成绩")}
+              </button>
             </div>
             {dailyLevels.length === 0 ? (
-              <div className="chart-empty">{t("在练习页完成每日水平测试后，这里会显示五次复原的平均水平。")}</div>
+              <div className="dl-empty">
+                <p>{t("在练习页完成每日水平测试后，这里会显示五次复原的平均水平。")}</p>
+                <Link className="dl-start-link" href="/practice">{t("开始今日测试")}</Link>
+              </div>
             ) : (
               <div className="daily-level-board">
-                <div className="dl-main">
-                  <span>{todayDailyLevel ? t("今日水平") : t("今日未测试")}</span>
-                  <b>{fmtStatsTime(todayDailyLevel?.averageMs ?? null)}</b>
-                  <em>{todayDailyLevel ? todayDailyLevel.localDate : t(`上次 ${dailyLevelRows[0]?.localDate ?? "—"}`)}</em>
+                <div className="dl-chart-summary">
+                  <em>{t(`${dailyLevels.length} 天测试`)}</em>
                 </div>
-                <div className="dl-main dl-main-secondary">
-                  <span>{t("历史最佳水平")}</span>
-                  <b>{fmtStatsTime(bestDailyLevel)}</b>
-                  <em>{bestDailyLevelEntry?.localDate ?? "—"}</em>
+                <div className="dl-chart">
+                  {renderDailyLevelChart()}
                 </div>
-                <div className="dl-recent">
-                  {dailyLevelRows.map((entry) => {
-                    const width = slowestDailyLevel > 0 ? `${Math.max(10, (entry.averageMs / slowestDailyLevel) * 100)}%` : "0%";
+                <div className="dl-recent" aria-label={t("最近 5 次每日测试")}>
+                  {recentDailyLevels.map((entry, index) => {
+                    const previous = dailyLevelRows[index + 1];
+                    const delta = previous ? previous.averageMs - entry.averageMs : null;
                     return (
                       <div key={entry.id} className="dl-row">
                         <span className="dl-date">{entry.localDate}</span>
-                        <span className="dl-track" aria-hidden="true">
-                          <span className="dl-bar" style={{ width }}></span>
-                        </span>
                         <b>{fmtShort(entry.averageMs)}</b>
+                        <em className={delta == null ? "" : delta >= 0 ? "faster" : "slower"}>
+                          {delta == null ? "—" : `${t(delta >= 0 ? "快" : "慢")} ${fmtStatsTime(Math.abs(delta))}`}
+                        </em>
                       </div>
                     );
                   })}
-                </div>
-                <div className="dl-chart">
-                  <DailyLevelChart />
                 </div>
               </div>
             )}
@@ -1488,6 +1576,73 @@ export function StatsApp() {
                   <b>{fmtShort(dailyLevelTip.entry.averageMs)}</b>
                   <em>{fmtMoveCount(averageDailyLevelMoves(dailyLevelTip.entry))}</em>
                 </div>
+              </div>,
+              document.body,
+            )}
+            {portalReady && isDailyHistoryOpen && createPortal(
+              <div className="dl-history-backdrop" onMouseDown={() => setIsDailyHistoryOpen(false)}>
+                <section
+                  className="dl-history-dialog"
+                  role="dialog"
+                  aria-modal="true"
+                  aria-labelledby="daily-history-title"
+                  onMouseDown={(event) => event.stopPropagation()}
+                >
+                  <div className="dl-history-dialog-head">
+                    <div>
+                      <div className="st-ch-kicker">— DAILY LEVEL</div>
+                      <h2 id="daily-history-title">{t("全部每日成绩")}</h2>
+                      <p>{dailyLevelRows.length} {t("天测试")}</p>
+                    </div>
+                    <button
+                      ref={dailyHistoryCloseRef}
+                      type="button"
+                      className="dl-history-close"
+                      aria-label={t("关闭")}
+                      onClick={() => setIsDailyHistoryOpen(false)}
+                    >
+                      ×
+                    </button>
+                  </div>
+                  {dailyLevelRows.length === 0 ? (
+                    <div className="dl-history-empty">{t("暂无每日测试数据")}</div>
+                  ) : (
+                    <div className="dl-history-table-wrap">
+                      <table className="dl-history-table">
+                        <thead>
+                          <tr>
+                            <th>{t("日期")}</th>
+                            <th>{t("每日成绩")}</th>
+                            <th>{t("五次复原")}</th>
+                            <th>{t("平均步数")}</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {dailyLevelRows.map((entry) => {
+                            const excluded = getDailyLevelExcludedSolveIndexes(entry.solves);
+                            return (
+                              <tr key={entry.id}>
+                                <td className="dl-history-date">{entry.localDate}</td>
+                                <td className="dl-history-score">{fmtShort(entry.averageMs)}</td>
+                                <td>
+                                  <div className="dl-history-solves">
+                                    {entry.solves.map((solve, index) => (
+                                      <span key={`${entry.id}-${index}`} className={excluded.has(index) ? "excluded" : ""}>
+                                        <em>{index + 1}</em>
+                                        {fmtShort(solve.ms)}
+                                      </span>
+                                    ))}
+                                  </div>
+                                </td>
+                                <td className="dl-history-moves">{fmtMoveCount(averageDailyLevelMoves(entry))}</td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </section>
               </div>,
               document.body,
             )}
@@ -1583,15 +1738,19 @@ export function StatsApp() {
             onPointerLeave={clearTrendHover}
             onMouseLeave={clearTrendHover}
           >
-            <div className="st-card-head">
-              <div>
-                <div className="st-ch-kicker">— TREND</div>
-                <div className="st-ch-title">{t("成绩趋势")}</div>
+            <div className="st-card-head st-trend-head">
+              <div className="trend-heading">
+                <div>
+                  <div className="st-ch-kicker">— TREND</div>
+                  <div className="st-ch-title">{t("成绩趋势")}</div>
+                </div>
+                <div className="st-legend trend-legend">
+                  <span><span className="lg-dot trend-dot-single"></span>{t("单次")}</span>
+                  <span><span className="lg-dot trend-dot-stable"></span>{t("成绩走势")}</span>
+                  {showTrendPb && <span><span className="lg-dot trend-dot-pb"></span>PB</span>}
+                </div>
               </div>
-              <div className="st-legend">
-                <span><span className="lg-dot" style={{ background: "#0E0E0C" }}></span>{t("单次")}</span>
-                <span><span className="lg-dot" style={{ background: "#1F4FB6" }}></span>{t("成绩走势")}</span>
-                {showTrendPb && <span><span className="lg-dot" style={{ background: "#C9352A" }}></span>PB</span>}
+              <div className="trend-control-rail">
                 <TrendDropdown
                   id="range"
                   label={t("成绩趋势显示范围")}
@@ -1618,7 +1777,9 @@ export function StatsApp() {
                 />
               </div>
             </div>
-            <div className="st-chart"><TrendChart /></div>
+            <div className="trend-chart-shell">
+              <div className="st-chart"><TrendChart /></div>
+            </div>
             {portalReady && trendCfopTip && createPortal((
               <div
                 className={`stats-cfop-floating-tip tip-${trendCfopTip.placement}`}
@@ -1665,8 +1826,8 @@ export function StatsApp() {
           <div className="st-card st-cfop">
             <div className="st-card-head">
               <div>
-                <div className="st-ch-kicker">— BREAKDOWN</div>
-                <div className="st-ch-title">{t("CFOP 阶段耗时")}</div>
+                <div className="st-ch-kicker">— PERFORMANCE</div>
+                <div className="st-ch-title">{t("近期成绩概览")}</div>
               </div>
               {activeCfopBreakdown.mode === "single" && trendCfopTip ? (
                 <div className="cfop-point-badge" aria-label={t(`当前练习编号 ${trendCfopTip.pointNumber}`)}>
@@ -1691,57 +1852,70 @@ export function StatsApp() {
               <div className="chart-empty">{t("需要")}{" "}{activeCfopBreakdown.target}{" "}{t("次 CFOP 阶段数据后显示 AO")}{activeCfopBreakdown.target}。</div>
             ) : (
               <>
-                <div className="cfop-rows">
-                  {[
-                    { key: "cross", name: "Cross", en: t("底层十字"), color: "#F2C744", value: activeCfopBreakdown.cross },
-                    { key: "f2l", name: "F2L", en: t("前两层"), color: "#1F6B3A", value: activeCfopBreakdown.f2l },
-                    { key: "oll", name: "OLL", en: t("顶层定向"), color: "#1F4FB6", value: activeCfopBreakdown.oll },
-                    { key: "pll", name: "PLL", en: t("顶层置换"), color: "#C9352A", value: activeCfopBreakdown.pll },
-                  ].map((phase) => (
-                    <div key={phase.key} className="cfop-row">
-                      <div className="cfr-l">
-                        <div className="cfr-name">{phase.name}</div>
-                        <div className="cfr-en">{phase.en}</div>
-                      </div>
-                      <div className="cfr-bar">
-                        <div
-                          className="cfr-fill"
-                          style={{
-                            width: `${activeCfopBreakdown.avg && phase.value ? (phase.value / activeCfopBreakdown.avg) * 100 : 0}%`,
-                            background: phase.color,
-                          }}
-                        ></div>
-                      </div>
-                      <div className="cfr-v">{fmtShort(phase.value)}</div>
-                      <div className="cfr-pct">{activeCfopBreakdown.avg && phase.value ? Math.round((phase.value / activeCfopBreakdown.avg) * 100) : 0}%</div>
+                <div className="cfop-overview-summary">
+                  <div className="cfop-overview-primary">
+                    <span>{t(activeCfopBreakdown.mode === "single" ? "单次成绩" : "近期平均")}</span>
+                    <b>{fmtShort(activeCfopBreakdown.avg)}</b>
+                  </div>
+                  <div className="cfop-overview-secondary">
+                    <div>
+                      <span>{t("最佳")}</span>
+                      <b>{fmtShort(activeCfopBreakdown.best)}</b>
                     </div>
-                  ))}
+                    <div>
+                      <span>{t("有效记录")}</span>
+                      <b>{activeCfopBreakdown.count}</b>
+                    </div>
+                  </div>
                 </div>
-                <div className="cfop-stack">
-                  {[
-                    { name: "Cross", value: activeCfopBreakdown.crossDuration, color: "#F2C744" },
-                    { name: "F2L", value: activeCfopBreakdown.f2lDuration, color: "#1F6B3A" },
-                    { name: "OLL", value: activeCfopBreakdown.ollDuration, color: "#1F4FB6" },
-                    { name: "PLL", value: activeCfopBreakdown.pllDuration, color: "#C9352A" },
-                  ].map((phase, index) => (
-                    <div
-                      key={index}
-                      className="cfs-item"
-                      style={{
-                        width: `${activeCfopBreakdown.phaseTotal && phase.value ? (phase.value / activeCfopBreakdown.phaseTotal) * 100 : 0}%`,
-                      }}
-                    >
-                      <div
-                        className="cfs-seg"
-                        style={{ background: phase.color }}
-                      ></div>
-                      <div className="cfs-label">
-                        <span>{phase.name}</span>
+
+                <div className="cfop-range">
+                  <div className="cfop-section-line">
+                    <span>{t("近期区间")}</span>
+                    <b className={activeCfopBreakdown.change == null ? "" : activeCfopBreakdown.change <= 0 ? "is-faster" : "is-slower"}>
+                      {activeCfopBreakdown.change == null
+                        ? t("暂无上周期数据")
+                        : `${t("较上一周期")} ${activeCfopBreakdown.change > 0 ? "+" : "-"}${fmtShort(Math.abs(activeCfopBreakdown.change))}`}
+                    </b>
+                  </div>
+                  <div className="cfop-range-track" aria-label={t("近期成绩区间")}>
+                    <span className="cfop-range-start" aria-hidden="true"></span>
+                    <span className="cfop-range-average" style={{ left: `${cfopRangePosition}%` }} aria-hidden="true"></span>
+                    <span className="cfop-range-end" aria-hidden="true"></span>
+                  </div>
+                  <div className="cfop-range-values">
+                    <b>{fmtShort(activeCfopBreakdown.best)}</b>
+                    <b style={{ left: `${cfopRangePosition}%` }}>{fmtShort(activeCfopBreakdown.avg)}</b>
+                    <b>{fmtShort(activeCfopBreakdown.worst)}</b>
+                  </div>
+                </div>
+
+                <div className="cfop-composition">
+                  <div className="cfop-section-line cfop-composition-head">
+                    <strong>{t("CFOP 阶段构成")}</strong>
+                    <span>{dominantCfopPhase.name} {t("占比最高")} · {activeCfopBreakdown.avg && dominantCfopPhase.value ? Math.round((dominantCfopPhase.value / activeCfopBreakdown.avg) * 100) : 0}%</span>
+                  </div>
+                  <div className="cfop-composition-bar" aria-label={t("CFOP 阶段耗时占比")}>
+                    {activeCfopPhases.map((phase) => (
+                      <span
+                        key={phase.key}
+                        style={{ width: `${((phase.value ?? 0) / cfopBarTotal) * 100}%`, background: phase.color }}
+                        aria-label={`${phase.name} ${fmtShort(phase.value)}`}
+                      ></span>
+                    ))}
+                    <span className="cfop-composition-untracked" style={{ width: `${Math.max(0, ((cfopBarTotal - activeCfopBreakdown.phaseTotal) / cfopBarTotal) * 100)}%` }}></span>
+                  </div>
+                  <div className="cfop-composition-values">
+                    {activeCfopPhases.map((phase) => (
+                      <div key={phase.key} style={{ "--cfop-phase-color": phase.color } as CSSProperties}>
+                        <span><i aria-hidden="true"></i>{phase.name}</span>
                         <b>{fmtShort(phase.value)}</b>
+                        <em>{activeCfopBreakdown.avg && phase.value ? Math.round((phase.value / activeCfopBreakdown.avg) * 100) : 0}%</em>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
+
               </>
             )}
           </div>

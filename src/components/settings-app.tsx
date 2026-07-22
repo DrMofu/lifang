@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useAuth } from "@/components/auth-provider";
 import { AppFooter, AppTopbar } from "@/components/app-shell";
 import { CubeColorLegend } from "@/components/cube-color-legend";
 import { useCubeAppearance } from "@/components/cube-appearance-provider";
 import { useLanguage } from "@/components/language-provider";
+import { useSystemNotification } from "@/components/system-notification-dialog";
 import type { MessageKey } from "@/lib/i18n-messages";
 import {
   COLOR_LABEL,
@@ -140,6 +141,7 @@ function rememberCloudSnapshotMetadata(userId: string, metadata: CloudSnapshotMe
 
 export function SettingsApp() {
   const { locale, setLocale, t } = useLanguage();
+  const { openSystemNotification } = useSystemNotification();
   const { configured: authConfigured, loading: authLoading, user, supabase } = useAuth();
   const {
     orientation,
@@ -1079,8 +1081,21 @@ export function SettingsApp() {
                 </div>
                 <div className="settings-card-body settings-card-body-console">
                   <div className="settings-debug-actions">
-                    <button type="button" className="settings-action" onClick={cleanupDeprecatedFormulaData}>{t("清理弃用数据")}</button>
-                    <div className="settings-data-note">{t("删除收藏、学习状态、练习统计和页面状态中已不在公式 JSON 里的公式数据。")}</div>
+                    <div className="settings-debug-action-item">
+                      <button type="button" className="settings-action" onClick={cleanupDeprecatedFormulaData}>{t("清理弃用数据")}</button>
+                      <div className="settings-data-note">{t("删除收藏、学习状态、练习统计和页面状态中已不在公式 JSON 里的公式数据。")}</div>
+                    </div>
+                    <div className="settings-debug-action-item">
+                      <button
+                        type="button"
+                        className="settings-action"
+                        aria-haspopup="dialog"
+                        onClick={openSystemNotification}
+                      >
+                        {t("打开系统通知")}
+                      </button>
+                      <div className="settings-data-note">{t("预览向用户展示的系统提示和版本更新内容。")}</div>
+                    </div>
                   </div>
                 </div>
               </section>
