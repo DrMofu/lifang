@@ -1,3 +1,8 @@
+## v0.1.2 (working)
+
+IMPROVEMENTS:
+- 调整移动端布局
+
 ## v0.1.1
 
 IMPROVEMENTS:

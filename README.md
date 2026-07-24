@@ -1,3 +1,7 @@
+<p align="right">
+  <strong>简体中文</strong> | <a href="README_EN.md">English</a>
+</p>
+
 <p align="center">
   <img src="public/banner.png" alt="立方" width="520" />
 </p>
@@ -19,7 +23,7 @@
   <img alt="GAN Smart Cube" src="https://img.shields.io/badge/GAN-Smart_Cube-55a86b" />
 </p>
 
-![练习界面](practive.jpg)
+![练习界面](./public/practice.jpg)
 
 ## 功能
 
