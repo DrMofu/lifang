@@ -536,12 +536,19 @@
 
 @media (max-width: 560px) {
   .system-notice-backdrop {
-    align-items: end;
-    padding: 10px;
+    align-items: center;
+    padding:
+      max(16px, env(safe-area-inset-top))
+      16px
+      max(16px, env(safe-area-inset-bottom));
   }
 
   .system-notice-dialog {
-    max-height: calc(100vh - 20px);
+    width: 100%;
+    max-height: calc(100vh - 32px);
+    max-height: calc(
+      100dvh - max(16px, env(safe-area-inset-top)) - max(16px, env(safe-area-inset-bottom))
+    );
     border-radius: 20px;
   }
 
@@ -551,6 +558,18 @@
 
   .system-notice-head h2 {
     font-size: 21px;
+  }
+
+  .system-notice-close {
+    width: 42px;
+    height: 42px;
+    border-color: rgba(47, 111, 242, 0.3);
+    background: var(--tech-blue-soft);
+    box-shadow: 0 6px 18px rgba(47, 111, 242, 0.12);
+    color: var(--tech-blue);
+    font-size: 27px;
+    font-weight: 500;
+    touch-action: manipulation;
   }
 
   .system-notice-body {

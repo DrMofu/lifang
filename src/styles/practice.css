@@ -986,7 +986,7 @@
   }
 
 }
-@media (max-width: 980px) {
+@media (max-width: 1120px) {
   .lf-practice-app {
     overflow: auto;
   }
@@ -998,7 +998,48 @@
 
   .practice-left,
   .practice-right {
+    display: contents;
     overflow: visible;
+  }
+
+  .lf-practice-app .practice-mode-switch {
+    order: 10;
+  }
+
+  .lf-practice-app .timer {
+    order: 20;
+  }
+
+  .lf-practice-app .timer-controls {
+    order: 30;
+  }
+
+  .practice-center {
+    order: 40;
+  }
+
+  .lf-practice-app .solve-metrics {
+    order: 50;
+  }
+
+  .lf-practice-app .stats {
+    order: 60;
+  }
+
+  .lf-practice-app .daily-test-card {
+    order: 70;
+  }
+
+  .lf-practice-app .movelog {
+    order: 80;
+  }
+
+  .lf-practice-app .hist-right {
+    order: 90;
+  }
+
+  .lf-practice-app .legend {
+    order: 100;
   }
 
   .lf-practice-app .movelog {
@@ -1027,9 +1068,12 @@
     padding: 14px;
   }
 
-  .lf-practice-app .legend-grid,
+  .lf-practice-app .legend-grid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+
   .lf-practice-app .stat-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .practice-stage {

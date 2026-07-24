@@ -207,7 +207,7 @@
 
 @media (max-width: 560px) {
   .home-actions {
-    align-items: stretch;
+    align-items: center;
     flex-direction: column;
   }
 

@@ -11,12 +11,6 @@ import {
   type ReactNode,
 } from "react";
 import type { Subscription } from "rxjs";
-import type {
-  GanCubeConnection,
-  GanCubeCommand,
-  GanCubeEvent,
-  GanCubeMove,
-} from "gan-web-bluetooth";
 import { useCubeAppearance } from "@/components/cube-appearance-provider";
 import {
   CONSOLE_LOGGING_SETTINGS_KEY,
@@ -45,6 +39,16 @@ import {
   type PendingPracticeSession,
 } from "@/lib/solve-history";
 import { touchLocalUserDataPackageUpdatedAt } from "@/lib/user-data-package";
+import {
+  SMART_CUBE_BRANDS,
+  connectSmartCube,
+  getSmartCubeBrand,
+  type SmartCubeBrandId,
+  type SmartCubeCommand,
+  type SmartCubeConnection,
+  type SmartCubeEvent,
+  type SmartCubeMove,
+} from "@/lib/smart-cube-connection";
 
 export type ConnectionState = "disconnected" | "connecting" | "connected" | "error";
 
@@ -97,7 +101,7 @@ type LocalFaceletsSnapshot = {
   serial: number;
   source: CubeFaceletsSignal["source"];
 };
-type PendingSerialMove = GanCubeMove & {
+type PendingSerialMove = SmartCubeMove & {
   serial: number;
 };
 type RequestBatteryOptions = {
@@ -109,11 +113,16 @@ type CubeConnectionContextValue = {
   connectionState: ConnectionState;
   connectionInfo: ConnectionInfo;
   connectionPromptVisible: boolean;
+  cubeBrands: typeof SMART_CUBE_BRANDS;
+  selectedCubeBrand: SmartCubeBrandId;
   telemetry: Telemetry;
   facelets: string | null;
   moveHistory: CubeMoveRecord[];
   visualState: CubeVisualState;
-  connectRealCube(): Promise<boolean>;
+  setSelectedCubeBrand(brandId: SmartCubeBrandId): void;
+  openConnectionPrompt(): void;
+  closeConnectionPrompt(): void;
+  connectRealCube(brandId?: SmartCubeBrandId): Promise<boolean>;
   disconnectCube(): Promise<void>;
   requestBattery(options?: RequestBatteryOptions): Promise<void>;
   requestFacelets(): Promise<void>;
@@ -133,7 +142,7 @@ const EMPTY_INFO: ConnectionInfo = {
   productDate: "—",
   gyroSupported: "—",
   batteryLevel: null,
-  protocol: "GAN BLE",
+  protocol: "—",
   error: null,
 };
 
@@ -222,7 +231,7 @@ function saveStoredVisualState(baseFacelets: string | null, moves: Array<{ rawMo
   }
 }
 
-function shouldLogEvent(settings: ConsoleLoggingSettings, event: GanCubeEvent) {
+function shouldLogEvent(settings: ConsoleLoggingSettings, event: SmartCubeEvent) {
   if (!settings.enabled) return false;
   if (event.type === "MOVE") return settings.logMove;
   if (event.type === "GYRO") return settings.logGyro;
@@ -233,7 +242,7 @@ function shouldLogEvent(settings: ConsoleLoggingSettings, event: GanCubeEvent) {
   return false;
 }
 
-function formatSentCommandForConsole(command: GanCubeCommand, sentAt: string) {
+function formatSentCommandForConsole(command: SmartCubeCommand, sentAt: string) {
   return {
     ...command,
     direction: "SEND",
@@ -247,6 +256,7 @@ export function CubeConnectionProvider({ children }: { children: ReactNode }) {
   const [connectionState, setConnectionState] = useState<ConnectionState>("disconnected");
   const [connectionInfo, setConnectionInfo] = useState<ConnectionInfo>(EMPTY_INFO);
   const [connectionPromptVisible, setConnectionPromptVisible] = useState(false);
+  const [selectedCubeBrand, setSelectedCubeBrand] = useState<SmartCubeBrandId>(SMART_CUBE_BRANDS[0].id);
   const [telemetry, setTelemetry] = useState<Telemetry>(EMPTY_TELEMETRY);
   const [facelets, setFacelets] = useState<string | null>(null);
   const [rawMoveHistory, setRawMoveHistory] = useState<Array<{ rawMove: string; t: number }>>([]);
@@ -255,7 +265,7 @@ export function CubeConnectionProvider({ children }: { children: ReactNode }) {
     storedVisualState.moves,
   );
 
-  const connRef = useRef<GanCubeConnection | null>(null);
+  const connRef = useRef<SmartCubeConnection | null>(null);
   const orientationRef = useRef(orientation);
   const subscriptionRef = useRef<Subscription | null>(null);
   const batteryRetryTimerRef = useRef<number | null>(null);
@@ -266,7 +276,7 @@ export function CubeConnectionProvider({ children }: { children: ReactNode }) {
   const lastMoveIdleFaceletsRequestAtRef = useRef(0);
   const lastGyroTelemetryAtRef = useRef(0);
   const latestGyroRef = useRef<CubeQuaternion | null>(null);
-  const lastMovesRef = useRef<GanCubeMove[]>([]);
+  const lastMovesRef = useRef<SmartCubeMove[]>([]);
   const localFaceletsRef = useRef<LocalFaceletsSnapshot | null>(null);
   const localFaceletsRevisionRef = useRef(0);
   const pendingMoveBySerialRef = useRef(new Map<number, PendingSerialMove>());
@@ -608,6 +618,8 @@ export function CubeConnectionProvider({ children }: { children: ReactNode }) {
     setConnectionPromptVisible(true);
   }, [clearConnectionPromptTimer]);
 
+  const openConnectionPrompt = showConnectionPrompt;
+
   const hideConnectionPrompt = useCallback(
     (delayMs = 0) => {
       clearConnectionPromptTimer();
@@ -624,6 +636,11 @@ export function CubeConnectionProvider({ children }: { children: ReactNode }) {
     },
     [clearConnectionPromptTimer],
   );
+
+  const closeConnectionPrompt = useCallback(() => {
+    if (connectionState === "connecting") return;
+    hideConnectionPrompt();
+  }, [connectionState, hideConnectionPrompt]);
 
   const resetSessionState = useCallback(() => {
     flushStoredVisualState();
@@ -643,7 +660,7 @@ export function CubeConnectionProvider({ children }: { children: ReactNode }) {
     setTelemetry(EMPTY_TELEMETRY);
   }, [clearBatteryPollTimer, clearBatteryRetryTimer, clearMoveIdleFaceletsTimer, flushStoredVisualState]);
 
-  const logSentCommand = useCallback((command: GanCubeCommand) => {
+  const logSentCommand = useCallback((command: SmartCubeCommand) => {
     const settings = consoleLoggingRef.current;
     if (!settings.enabled || !settings.logSentCommands) return;
     if (command.type === "REQUEST_FACELETS" && !settings.logFacelets) return;
@@ -653,7 +670,7 @@ export function CubeConnectionProvider({ children }: { children: ReactNode }) {
     console.groupEnd();
   }, []);
 
-  const logReceivedEvent = useCallback((event: GanCubeEvent) => {
+  const logReceivedEvent = useCallback((event: SmartCubeEvent) => {
     if (!shouldLogEvent(consoleLoggingRef.current, event)) return;
     const timestamp = formatTimestamp();
     console.groupCollapsed(`[LI-FANG Cube] ${event.type} · ${timestamp}`);
@@ -662,9 +679,9 @@ export function CubeConnectionProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const sendCubeCommand = useCallback(
-    async (conn: GanCubeConnection, command: GanCubeCommand) => {
+    async (conn: SmartCubeConnection, command: SmartCubeCommand) => {
       logSentCommand(command);
-      await conn.sendCubeCommand(command).catch(() => undefined);
+      await conn.sendCommand(command).catch(() => undefined);
     },
     [logSentCommand],
   );
@@ -732,8 +749,9 @@ export function CubeConnectionProvider({ children }: { children: ReactNode }) {
     }
   }, [hideConnectionPrompt, resetSessionState]);
 
-  const connectRealCube = useCallback(async () => {
+  const connectRealCube = useCallback(async (brandId: SmartCubeBrandId = selectedCubeBrand) => {
     showConnectionPrompt();
+    const brand = getSmartCubeBrand(brandId);
 
     if (typeof navigator === "undefined" || !navigator.bluetooth) {
       setConnectionState("error");
@@ -756,31 +774,32 @@ export function CubeConnectionProvider({ children }: { children: ReactNode }) {
     }
 
     setConnectionState("connecting");
-    setConnectionInfo({ ...EMPTY_INFO, error: null });
+    setConnectionInfo({ ...EMPTY_INFO, protocol: brand.protocol, error: null });
     setTelemetry(EMPTY_TELEMETRY);
 
     try {
-      const { connectGanCube, cubeTimestampCalcSkew } = await import("gan-web-bluetooth");
-      const conn = await connectGanCube();
+      const conn = await connectSmartCube(brandId);
       connRef.current = conn;
       lastMovesRef.current = [];
       setConnectionInfo({
         ...EMPTY_INFO,
         deviceName: conn.deviceName,
-        deviceMAC: conn.deviceMAC,
+        deviceMAC: conn.deviceId,
+        protocol: conn.brand.protocol,
         error: null,
       });
       setConnectionState("connected");
       hideConnectionPrompt();
 
-      subscriptionRef.current = conn.events$.subscribe((event: GanCubeEvent) => {
+      subscriptionRef.current = conn.events$.subscribe((event: SmartCubeEvent) => {
         logReceivedEvent(event);
 
         if (event.type === "MOVE") {
           trackPracticeMove(Date.now());
           lastMovesRef.current = [...lastMovesRef.current, event].slice(-256);
           const rawMoveEntry = { rawMove: event.move, t: event.localTimestamp ?? performance.now() };
-          const skew = lastMovesRef.current.length > 10 ? `${cubeTimestampCalcSkew(lastMovesRef.current)}%` : "—";
+          const clockSkew = conn.calculateClockSkew(lastMovesRef.current);
+          const skew = clockSkew === null ? "—" : `${clockSkew}%`;
           const mappedMove = mapMoveToOrientation(event.move, orientationRef.current);
           setRawMoveHistory((prev) => [...prev, rawMoveEntry].slice(-64));
           setTelemetry((prev) => ({
@@ -878,6 +897,7 @@ export function CubeConnectionProvider({ children }: { children: ReactNode }) {
     saveStoredVisualStateNow,
     scheduleMoveIdleFaceletsCheck,
     scheduleStoredVisualStateSave,
+    selectedCubeBrand,
     sendCubeCommand,
     showConnectionPrompt,
     trackPracticeMove,
@@ -953,10 +973,15 @@ export function CubeConnectionProvider({ children }: { children: ReactNode }) {
       connectionState,
       connectionInfo,
       connectionPromptVisible,
+      cubeBrands: SMART_CUBE_BRANDS,
+      selectedCubeBrand,
       telemetry,
       facelets,
       moveHistory,
       visualState,
+      setSelectedCubeBrand,
+      openConnectionPrompt,
+      closeConnectionPrompt,
       connectRealCube,
       disconnectCube,
       requestBattery,
@@ -971,6 +996,9 @@ export function CubeConnectionProvider({ children }: { children: ReactNode }) {
       connectionInfo,
       connectionPromptVisible,
       connectionState,
+      selectedCubeBrand,
+      openConnectionPrompt,
+      closeConnectionPrompt,
       connectRealCube,
       disconnectCube,
       facelets,

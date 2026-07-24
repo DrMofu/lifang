@@ -706,6 +706,8 @@ export function mountSmartCube(
   let frameScheduled = false;
   let disposed = false;
   let dragging = false;
+  const pointerPositions = new Map<number, { x: number; y: number }>();
+  let pinchDistance = 0;
   let interactionLocked = Boolean(options.interactionLocked);
   let dragStartX = 0;
   let dragStartY = 0;
@@ -1107,18 +1109,48 @@ export function mountSmartCube(
     requestRender();
   });
 
+  function getPinchDistance() {
+    if (pointerPositions.size < 2) return 0;
+    const [first, second] = Array.from(pointerPositions.values());
+    if (!first || !second) return 0;
+    return Math.hypot(second.x - first.x, second.y - first.y);
+  }
+
   function onPointerDown(event: PointerEvent) {
     if (interactionLocked) return;
-    if (!event.isPrimary || event.button !== 0) return;
+    if (event.button !== 0) return;
+    pointerPositions.set(event.pointerId, { x: event.clientX, y: event.clientY });
+    renderer.domElement.setPointerCapture(event.pointerId);
+
+    if (pointerPositions.size >= 2) {
+      dragging = false;
+      pinchDistance = getPinchDistance();
+      requestRender();
+      return;
+    }
+
     dragging = true;
     dragStartX = event.clientX;
     dragStartY = event.clientY;
-    renderer.domElement.setPointerCapture(event.pointerId);
     requestRender();
   }
 
   function onPointerMove(event: PointerEvent) {
     if (interactionLocked) return;
+    if (!pointerPositions.has(event.pointerId)) return;
+    pointerPositions.set(event.pointerId, { x: event.clientX, y: event.clientY });
+
+    if (pointerPositions.size >= 2) {
+      const nextPinchDistance = getPinchDistance();
+      if (pinchDistance > 0 && nextPinchDistance > 0) {
+        const nextDistance = cameraDistance * (pinchDistance / nextPinchDistance);
+        if (applyCameraDistance(nextDistance)) onDisplayOrientationChange?.();
+      }
+      pinchDistance = nextPinchDistance;
+      requestRender();
+      return;
+    }
+
     if (!dragging) return;
     const rect = renderer.domElement.getBoundingClientRect();
     const minDim = Math.max(Math.min(rect.width, rect.height), 1);
@@ -1136,8 +1168,20 @@ export function mountSmartCube(
     dragStartY = event.clientY;
   }
 
-  function onPointerUp() {
-    dragging = false;
+  function onPointerUp(event: PointerEvent) {
+    pointerPositions.delete(event.pointerId);
+    pinchDistance = getPinchDistance();
+
+    if (pointerPositions.size === 1) {
+      const remainingPointer = pointerPositions.values().next().value;
+      if (remainingPointer) {
+        dragging = true;
+        dragStartX = remainingPointer.x;
+        dragStartY = remainingPointer.y;
+      }
+    } else {
+      dragging = false;
+    }
     requestRender();
   }
 
@@ -1278,6 +1322,8 @@ export function mountSmartCube(
       interactionLocked = locked;
       if (locked) {
         dragging = false;
+        pointerPositions.clear();
+        pinchDistance = 0;
         gyroBasis = null;
         gyroActive = false;
         targetCubeOrientation.copy(cubeRoot.quaternion);

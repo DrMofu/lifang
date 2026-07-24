@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 import { useCubeConnection } from "@/components/cube-connection-provider";
 import { useLanguage } from "@/components/language-provider";
 import type { MessageKey } from "@/lib/i18n-messages";
+import { isSmartCubeBrandId } from "@/lib/smart-cube-connection";
 import settings from "@/settings.json";
 
 const NAV: Array<{ href: string; labelKey: MessageKey; icon: string }> = [
@@ -246,8 +247,13 @@ export function CompactConnectButton() {
     connectionState,
     connectionInfo,
     connectionPromptVisible,
+    cubeBrands,
+    selectedCubeBrand,
     telemetry,
     facelets,
+    setSelectedCubeBrand,
+    openConnectionPrompt,
+    closeConnectionPrompt,
     connectRealCube,
     disconnectCube,
     requestBattery,
@@ -332,9 +338,11 @@ export function CompactConnectButton() {
         <button
           className="ghost-link"
           type="button"
-          onClick={() => void connectRealCube()}
+          onClick={openConnectionPrompt}
           disabled={connecting}
-          aria-describedby={connectionPromptVisible ? "top-connect-prompt" : "top-connect-detail"}
+          aria-haspopup="dialog"
+          aria-expanded={connectionPromptVisible}
+          aria-controls={connectionPromptVisible ? "top-connect-prompt" : undefined}
         >
           <span className={connecting ? "dot dot-pulse" : "dot"}></span>
           {label}
@@ -347,16 +355,21 @@ export function CompactConnectButton() {
           <div
             className="top-connect-prompt"
             id="top-connect-prompt"
-            role="status"
-            aria-live="polite"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="top-connect-prompt-title"
           >
             <div className="top-connect-prompt-head">
               <div className="top-connect-prompt-visual" aria-hidden="true">
                 <img src="/li-fang-logo.png" alt="" />
               </div>
               <div>
-                <div className="top-connect-prompt-title">{t("connection.pairingTitle")}</div>
-                <div className="top-connect-prompt-intro">{t("connection.pairingIntro")}</div>
+                <div className="top-connect-prompt-title" id="top-connect-prompt-title">
+                  {t("connection.pairingTitle")}
+                </div>
+                <div className="top-connect-prompt-intro">
+                  {t(connecting ? "connection.pairingConnectingIntro" : "connection.pairingIntro")}
+                </div>
               </div>
             </div>
             <ol className="top-connect-prompt-steps">
@@ -364,9 +377,44 @@ export function CompactConnectButton() {
               <li>{t("connection.pairingStepSelect")}</li>
               <li>{t("connection.pairingStepWait")}</li>
             </ol>
-            <div className="top-connect-prompt-note">
-              <span className="dot dot-pulse" aria-hidden="true" />
-              {t("connection.ganOnly")}
+            <div className="top-connect-brand-field">
+              <label htmlFor="top-connect-brand">{t("connection.cubeBrand")}</label>
+              <div className="top-connect-brand-select-wrap">
+                <select
+                  id="top-connect-brand"
+                  value={selectedCubeBrand}
+                  disabled={connecting}
+                  autoFocus
+                  onChange={(event) => {
+                    if (isSmartCubeBrandId(event.target.value)) {
+                      setSelectedCubeBrand(event.target.value);
+                    }
+                  }}
+                >
+                  {cubeBrands.map((brand) => (
+                    <option key={brand.id} value={brand.id}>
+                      {brand.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="top-connect-prompt-note">
+                <span className={connecting ? "dot dot-pulse" : "dot"} aria-hidden="true" />
+                {t("connection.ganOnly")}
+              </div>
+            </div>
+            <div className="top-connect-prompt-actions">
+              <button type="button" onClick={closeConnectionPrompt} disabled={connecting}>
+                {t("connection.cancelPairing")}
+              </button>
+              <button
+                type="button"
+                className="primary"
+                onClick={() => void connectRealCube(selectedCubeBrand)}
+                disabled={connecting}
+              >
+                {t(connecting ? "connection.waitingForPairing" : "connection.startPairing")}
+              </button>
             </div>
           </div>
         </>,
